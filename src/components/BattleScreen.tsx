@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { CHARACTERS, GUARDS, ISLANDS, playSound, Question } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
 
@@ -11,9 +11,8 @@ interface Props {
 
 const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
   const { state, currentPlayer, updatePlayer } = useGame();
-  if (!currentPlayer) return null;
 
-  const char = CHARACTERS.find(c => c.id === currentPlayer.characterId)!;
+  const char = CHARACTERS.find(c => c.id === currentPlayer?.characterId);
   const guardEmoji = GUARDS[islandId % GUARDS.length];
   const islandName = ISLANDS[islandId]?.name || 'جزيرة';
 
@@ -24,10 +23,10 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
 
   const questionsNeeded = state.battleSettings.questionsPerGuard[String(islandId)] || 3;
   const guardMaxHp = questionsNeeded * state.battleSettings.playerAttack;
-  
+
   const [qIndex, setQIndex] = useState(0);
   const [guardHp, setGuardHp] = useState(guardMaxHp);
-  const [playerHp, setPlayerHp] = useState(currentPlayer.hp);
+  const [playerHp, setPlayerHp] = useState(currentPlayer?.hp ?? 100);
   const [playerAnim, setPlayerAnim] = useState('');
   const [guardAnim, setGuardAnim] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
@@ -39,29 +38,16 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
 
   const currentQ: Question | null = questions[qIndex % questions.length] || null;
 
-  useEffect(() => {
-    if (!currentQ?.hasTimer) { setTimeLeft(null); return; }
-    setTimeLeft(30);
-    const t = setInterval(() => setTimeLeft(p => {
-      if (p === null || p <= 1) { clearInterval(t); handleAnswer(-1); return null; }
-      return p - 1;
-    }), 1000);
-    return () => clearInterval(t);
-  }, [qIndex]);
+  const handleAnswer = useCallback((idx: number) => {
+    if (!currentPlayer || !currentQ || feedback || dead || won) return;
 
-  const handleAnswer = (idx: number) => {
-    if (feedback || dead || won) return;
-    
-    if (idx === currentQ?.correctIndex) {
-      // Correct
+    if (idx === currentQ.correctIndex) {
       playSound('correct');
       setFeedback('correct');
       setPlayerAnim('animate-attack-right');
       const newGuardHp = Math.max(0, guardHp - state.battleSettings.playerAttack);
       setGuardHp(newGuardHp);
-      const gold = 10;
-      const xp = 15;
-      const updated = { ...currentPlayer, gold: currentPlayer.gold + gold, xp: currentPlayer.xp + xp };
+      const updated = { ...currentPlayer, gold: currentPlayer.gold + 10, xp: currentPlayer.xp + 15 };
       updatePlayer(updated);
 
       setTimeout(() => {
@@ -76,7 +62,6 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
         }
       }, 800);
     } else {
-      // Wrong
       playSound('wrong');
       setFeedback('wrong');
       setGuardAnim('animate-attack-left');
@@ -100,21 +85,31 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
         }
       }, 800);
     }
-  };
+  }, [currentPlayer, currentQ, feedback, dead, won, guardHp, playerHp, state.battleSettings, updatePlayer, onBack]);
+
+  useEffect(() => {
+    if (!currentQ?.hasTimer) { setTimeLeft(null); return; }
+    setTimeLeft(30);
+    const t = setInterval(() => setTimeLeft(p => {
+      if (p === null || p <= 1) { clearInterval(t); handleAnswer(-1); return null; }
+      return p - 1;
+    }), 1000);
+    return () => clearInterval(t);
+  }, [qIndex, currentQ?.hasTimer, handleAnswer]);
 
   const useItem = (itemId: string) => {
+    if (!currentPlayer || !currentQ) return;
     const item = state.shopItems.find(i => i.id === itemId);
     if (!item || currentPlayer.gold < item.price) { playSound('wrong'); return; }
     playSound('click');
-    
-    if (itemId === 'remove2' && currentQ) {
+
+    if (itemId === 'remove2') {
       const wrong = currentQ.options.map((_, i) => i).filter(i => i !== currentQ.correctIndex);
-      const toRemove = wrong.sort(() => Math.random() - 0.5).slice(0, 2);
-      setRemovedOptions(toRemove);
+      setRemovedOptions(wrong.sort(() => Math.random() - 0.5).slice(0, 2));
     } else if (itemId === 'skip') {
       setQIndex(q => q + 1);
       setRemovedOptions([]);
-    } else if (itemId === 'hint' && currentQ) {
+    } else if (itemId === 'hint') {
       const wrong = currentQ.options.map((_, i) => i).filter(i => i !== currentQ.correctIndex);
       setRemovedOptions([wrong[0]]);
     } else if (itemId === 'heal') {
@@ -122,6 +117,8 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
     }
     updatePlayer({ ...currentPlayer, gold: currentPlayer.gold - item.price });
   };
+
+  if (!currentPlayer) return null;
 
   if (!currentQ) return (
     <div className="min-h-screen flex items-center justify-center z-10 relative">
@@ -134,7 +131,6 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
 
   return (
     <div className={`min-h-screen relative flex flex-col z-10 ${cracked ? 'animate-shake' : ''}`}>
-      {/* Crack overlay */}
       {cracked && (
         <div className="fixed inset-0 z-50 pointer-events-none animate-crack flex items-center justify-center">
           <div className="text-9xl">{guardEmoji}</div>
@@ -144,7 +140,6 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
         </div>
       )}
 
-      {/* Victory overlay */}
       {won && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="text-center animate-scale-in">
@@ -158,24 +153,18 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
         </div>
       )}
 
-      {/* Battle area */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-lg">
-          {/* Combatants */}
           <div className="flex items-end justify-between mb-4 px-4">
-            {/* Player */}
             <div className={`text-center ${playerAnim}`}>
-              <span className="text-6xl md:text-7xl block mb-2">{char.emoji}</span>
+              <span className="text-6xl md:text-7xl block mb-2">{char?.emoji}</span>
               <p className="text-xs font-bold text-foreground mb-1">{currentPlayer.name}</p>
               <div className="w-24 h-2 bg-secondary rounded-full overflow-hidden">
                 <div className="h-full bg-space-green rounded-full transition-all" style={{ width: `${(playerHp / currentPlayer.maxHp) * 100}%` }} />
               </div>
               <span className="text-xs text-muted-foreground">{playerHp}/{currentPlayer.maxHp}</span>
             </div>
-
             <span className="text-2xl font-black text-accent mb-8">⚔️</span>
-
-            {/* Guard */}
             <div className={`text-center ${guardAnim}`}>
               <span className="text-6xl md:text-7xl block mb-2">{guardEmoji}</span>
               <p className="text-xs font-bold text-foreground mb-1">حارس {islandName}</p>
@@ -186,7 +175,6 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
             </div>
           </div>
 
-          {/* Question */}
           <div className="bg-card border border-border rounded-2xl p-5 mt-4">
             {timeLeft !== null && (
               <div className="text-center mb-3">
@@ -198,7 +186,6 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
               {currentQ.options.map((opt, i) => {
                 if (removedOptions.includes(i)) return null;
                 const isCorrect = feedback && i === currentQ.correctIndex;
-                const isWrong = feedback === 'wrong' && i !== currentQ.correctIndex;
                 return (
                   <button
                     key={i}
@@ -206,7 +193,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
                     disabled={!!feedback}
                     className={`p-3 rounded-xl border-2 font-semibold text-sm transition-all ${
                       isCorrect ? 'border-space-green bg-space-green/20 text-foreground' :
-                      isWrong ? 'border-border opacity-50' :
+                      feedback === 'wrong' ? 'border-border opacity-50' :
                       'border-border hover:border-primary bg-secondary/50 text-foreground hover:bg-primary/10'
                     }`}
                   >
@@ -215,8 +202,6 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
                 );
               })}
             </div>
-
-            {/* Items */}
             <div className="flex gap-2 mt-4 justify-center flex-wrap">
               {state.shopItems.map(item => (
                 <button
@@ -231,7 +216,6 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
               ))}
             </div>
           </div>
-
           <button onClick={onBack} className="mt-4 text-sm text-muted-foreground hover:text-foreground transition-all block mx-auto">
             ← العودة
           </button>
