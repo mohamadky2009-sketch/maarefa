@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useGame } from '@/lib/gameState';
-import { playSound } from '@/lib/gameState';
-import { PLANETS, PLANET_IMAGES, CHARACTERS } from '@/lib/constants';
+import { useGame } from '@/context/GameContext';
+import { playSound, PLANETS, CHARACTERS } from '@/lib/gameState';
+import { PLANET_IMAGES } from '@/lib/constants';
 import ShopModal from './ShopModal';
 import Leaderboard from './Leaderboard';
 import goldBagsImg from '@/assets/gold-bags.png';
