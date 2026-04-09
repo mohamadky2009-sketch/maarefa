@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import StarField from './StarField';
 import FloatingAstronaut from './FloatingAstronaut';
+import FloatingRocket from './FloatingRocket';
 import RegisterModal from './RegisterModal';
 import AdminLoginModal from './AdminLoginModal';
 import { playSound } from '@/lib/gameState';
 import parchmentImg from '@/assets/parchment.png';
-import rocketImg from '@/assets/rocket.png';
 
 interface Props {
   onAdmin: () => void;
@@ -19,22 +19,16 @@ const EntryScreen = ({ onAdmin }: Props) => {
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <StarField />
       <FloatingAstronaut />
-
-      {/* Floating rocket */}
-      <div className="fixed bottom-10 left-10 z-0 pointer-events-none animate-float-slow opacity-60">
-        <img src={rocketImg} alt="rocket" className="w-16 h-24 md:w-20 md:h-28 object-contain drop-shadow-lg" />
-      </div>
+      <FloatingRocket />
 
       <div className="relative z-10 animate-float">
         <div className="relative max-w-md mx-4">
-          {/* Parchment background */}
           <img
             src={parchmentImg}
             alt="parchment"
             className="absolute inset-0 w-full h-full object-fill drop-shadow-2xl"
           />
 
-          {/* Content on parchment */}
           <div className="relative p-10 md:p-14 flex flex-col items-center">
             <h1 className="text-5xl md:text-6xl font-black text-center mb-2 text-amber-900 drop-shadow-lg">
               معرفة

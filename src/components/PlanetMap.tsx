@@ -4,6 +4,28 @@ import { useState } from 'react';
 import ShopModal from './ShopModal';
 import Leaderboard from './Leaderboard';
 
+import planetNeptune from '@/assets/planet-neptune.png';
+import planetUranus from '@/assets/planet-uranus.png';
+import planetSaturn from '@/assets/planet-saturn.png';
+import planetJupiter from '@/assets/planet-jupiter.png';
+import planetMars from '@/assets/planet-mars.png';
+import planetEarth from '@/assets/planet-earth.png';
+import planetVenus from '@/assets/planet-venus.png';
+import planetMercury from '@/assets/planet-mercury.png';
+import planetSun from '@/assets/planet-sun.png';
+
+const PLANET_IMAGES: Record<number, string> = {
+  0: planetNeptune,
+  1: planetUranus,
+  2: planetSaturn,
+  3: planetJupiter,
+  4: planetMars,
+  5: planetEarth,
+  6: planetVenus,
+  7: planetMercury,
+  8: planetSun,
+};
+
 interface Props {
   onSelectPlanet: (id: number) => void;
 }
@@ -43,8 +65,8 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
         </div>
       </div>
 
-      {/* Planets grid */}
-      <div className="relative z-10 grid grid-cols-3 md:grid-cols-5 gap-6 max-w-4xl mx-auto mt-8">
+      {/* Planets grid - large, scrollable */}
+      <div className="relative z-10 grid grid-cols-2 md:grid-cols-3 gap-10 max-w-5xl mx-auto mt-8 pb-16">
         {PLANETS.map((planet, i) => {
           const unlocked = currentPlayer.unlockedPlanets.includes(planet.id);
           const delay = i * 0.3;
@@ -55,16 +77,19 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                 if (unlocked) { playSound('click'); onSelectPlanet(planet.id); }
                 else playSound('wrong');
               }}
-              className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-300 ${
-                unlocked ? 'hover:scale-110 cursor-pointer' : 'opacity-50 cursor-not-allowed'
+              className={`relative flex flex-col items-center gap-3 p-6 rounded-2xl transition-all duration-300 ${
+                unlocked ? 'hover:scale-110 cursor-pointer' : 'opacity-40 cursor-not-allowed'
               }`}
               style={{ animation: `planet-orbit 6s ease-in-out ${delay}s infinite` }}
             >
-              <span className="text-5xl md:text-6xl drop-shadow-lg" style={{ filter: unlocked ? 'none' : 'grayscale(1)' }}>
-                {planet.emoji}
-              </span>
-              {!unlocked && <span className="absolute top-2 left-1/2 -translate-x-1/2 text-2xl">🔒</span>}
-              <span className="text-sm font-bold text-foreground">{planet.name}</span>
+              <img
+                src={PLANET_IMAGES[planet.id]}
+                alt={planet.name}
+                className="w-36 h-36 md:w-48 md:h-48 object-contain drop-shadow-[0_0_25px_rgba(100,150,255,0.3)]"
+                style={{ filter: unlocked ? 'none' : 'grayscale(1)' }}
+              />
+              {!unlocked && <span className="absolute top-4 left-1/2 -translate-x-1/2 text-3xl">🔒</span>}
+              <span className="text-base font-bold text-foreground">{planet.name}</span>
             </button>
           );
         })}
