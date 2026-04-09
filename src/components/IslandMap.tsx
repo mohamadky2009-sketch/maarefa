@@ -1,5 +1,6 @@
 import { ISLANDS, playSound } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
+import islandsBg from '@/assets/islands-bg.png';
 import island1 from '@/assets/island1.png';
 import island2 from '@/assets/island2.png';
 import island3 from '@/assets/island3.png';
@@ -21,7 +22,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
   const unlockedIslands = currentPlayer.unlockedIslands[planetId] || [0];
 
   return (
-    <div className="min-h-screen relative p-4">
+    <div className="min-h-screen relative p-4" style={{ backgroundImage: `url(${islandsBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <div className="relative z-10">
         <button onClick={() => { playSound('click'); onBack(); }}
           className="mb-6 px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold transition-all">
