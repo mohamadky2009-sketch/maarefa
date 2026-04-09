@@ -5,10 +5,8 @@ import { useGame } from '@/context/GameContext';
 // الصور اللي رتبها Lovable في المجلد الجديد
 import heroIdle from '@/assets/combat/martial-hero-idle.png';
 import heroAttack from '@/assets/combat/martial-hero-attack.png';
-import heroDeath from '@/assets/combat/martial-hero-death.png';
 import wizardIdle from '@/assets/combat/evil-wizard-idle.png';
 import wizardAttack from '@/assets/combat/evil-wizard-attack.png';
-import wizardDeath from '@/assets/combat/evil-wizard-death.png';
 
 const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: number, islandId: number, onBack: () => void, onVictory: () => void }) => {
   const { state, currentPlayer, updatePlayer } = useGame();
