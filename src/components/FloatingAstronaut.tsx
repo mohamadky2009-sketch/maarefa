@@ -4,9 +4,7 @@ import astronautImg from '@/assets/astronaut.png';
 const FloatingAstronaut = () => {
   const ref = useRef<HTMLDivElement>(null);
   
-  // نقطة البداية
   const posRef = useRef({ x: 50, y: 50 });
-  // تقليل السرعة لتكون هادئة (0.2 و 0.15 بدلاً من 0.6)
   const velRef = useRef({ x: 0.2, y: 0.15 });
   const rotRef = useRef(0);
 
@@ -23,7 +21,6 @@ const FloatingAstronaut = () => {
       if (pos.x > 85 || pos.x < 5) vel.x *= -1;
       if (pos.y > 80 || pos.y < 5) vel.y *= -1;
 
-      // دوران هادئ ومستمر (0.5 درجة في كل إطار)
       rotRef.current += 0.5;
 
       if (ref.current) {
@@ -44,11 +41,11 @@ const FloatingAstronaut = () => {
       className="fixed z-20 pointer-events-none"
       style={{ left: '50%', top: '50%' }}
     >
-      {/* تم تثبيت الحجم هنا (w-32) لمنع التغير المفاجئ على التابلت */}
+      {/* التعديل هنا: تحديد طول وعرض ثابتين ومنع الانكماش نهائياً */}
       <img 
         src={astronautImg} 
         alt="astronaut" 
-        className="w-32 h-auto object-contain drop-shadow-2xl" 
+        className="w-32 h-[128px] max-w-none max-h-none shrink-0 object-contain drop-shadow-2xl" 
       />
     </div>
   );
