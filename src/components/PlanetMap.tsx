@@ -15,22 +15,19 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
   const [showShop, setShowShop] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   
-  // حالة جديدة للتحكم بتأثير التكبير (الزوم) عند الدخول للكوكب
   const [zoomingPlanet, setZoomingPlanet] = useState<number | null>(null);
 
   if (!currentPlayer) return null;
   const char = CHARACTERS.find(c => c.id === currentPlayer.characterId);
   const xpPercent = Math.min((currentPlayer.xp % 100), 100);
 
-  // دالة الدخول للكوكب مع تأثير الزوم
   const handlePlanetEnter = (planetId: number) => {
     playSound('click');
     setZoomingPlanet(planetId);
     
-    // الانتظار ثانية واحدة حتى ينتهي تأثير التكبير، ثم فتح صفحة الجزر
     setTimeout(() => {
       onSelectPlanet(planetId);
-      setZoomingPlanet(null); // إعادة الضبط
+      setZoomingPlanet(null);
     }, 800);
   };
 
@@ -75,16 +72,13 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
         </div>
       </div>
 
-      {/* مسار الكواكب المتعرج من الأعلى (الأبعد) إلى الأسفل (الأقرب) */}
-      <div className="relative z-10 flex flex-col items-center gap-28 md:gap-40 max-w-4xl mx-auto mt-20 pb-32">
+      {/* مسار الكواكب المتعرج (نبتون في الأعلى) */}
+      <div className="relative z-10 flex flex-col items-center gap-28 md:gap-40 max-w-4xl mx-auto mt-20 pb-10">
         
-        {PLANETS.slice().reverse().map((planet, index) => {
-          const originalIndex = PLANETS.length - 1 - index;
+        {PLANETS.map((planet, index) => {
           const unlocked = currentPlayer.unlockedPlanets.includes(planet.id);
           const isLeft = index % 2 === 0;
           const delay = index * 0.3;
-          
-          // هل هذا الكوكب هو الذي يتم الضغط عليه الآن لعمل الزوم؟
           const isZooming = zoomingPlanet === planet.id;
 
           return (
@@ -99,7 +93,6 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                   if (unlocked && !isZooming) handlePlanetEnter(planet.id);
                   else if (!unlocked) playSound('wrong');
                 }}
-                // تأثير الزوم الخرافي عند الضغط: الكوكب يكبر 15 ضعف ويختفي تدريجياً
                 className={`relative flex flex-col items-center group transition-all ${
                   isZooming 
                     ? 'duration-[800ms] scale-[15] opacity-0 z-[100] pointer-events-none' 
@@ -111,23 +104,22 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
               >
                 {/* الكوكب مع التوهج والدوران */}
                 <div className="relative flex justify-center items-center">
-                  {/* توهج خلفي للكوكب المفتوح */}
                   <div className={`absolute inset-0 rounded-full blur-[40px] transition-all duration-500 ${
-                    unlocked ? 'bg-blue-500/50' : 'bg-transparent'
+                    unlocked ? 'bg-blue-500/30' : 'bg-transparent'
                   }`}></div>
 
+                  {/* تفعيل الدوران البطيء (animate-spin) للكوكب المفتوح */}
                   <img
                     src={PLANET_IMAGES[planet.id]}
                     alt={planet.name}
-                    className="relative z-10 w-48 h-48 md:w-64 md:h-64 object-contain"
+                    className={`relative z-10 w-48 h-48 md:w-64 md:h-64 object-contain ${
+                      unlocked ? 'animate-spin [animation-duration:30s]' : ''
+                    }`}
                     style={{ 
-                      filter: unlocked ? 'drop-shadow(0 0 35px rgba(100,200,255,0.7))' : 'grayscale(1)',
-                      // الكوكب يلف حول نفسه إذا كان مفتوحاً
-                      animation: unlocked ? 'spin 25s linear infinite' : 'none'
+                      filter: unlocked ? 'drop-shadow(0 0 25px rgba(100,200,255,0.5))' : 'grayscale(1)'
                     }}
                   />
                   
-                  {/* قفل على الكواكب المغلقة */}
                   {!unlocked && (
                     <span className="absolute z-20 text-5xl drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]">
                       🔒
@@ -135,13 +127,13 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                   )}
                 </div>
 
-                {/* اسم الكوكب والعبارة (تختفي أثناء الزوم لتنظيف الشاشة) */}
-                <div className={`mt-6 flex flex-col items-center bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.6)] transition-opacity ${isZooming ? 'opacity-0' : 'opacity-100'}`}>
-                  <span className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-200 drop-shadow-md mb-2">
+                {/* اسم الكوكب والعبارة (بدون خلفية مربعة مزعجة) */}
+                <div className={`mt-4 flex flex-col items-center transition-opacity ${isZooming ? 'opacity-0' : 'opacity-100'}`}>
+                  <span className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-1">
                     {planet.name}
                   </span>
-                  <span className="text-xs md:text-sm font-bold text-blue-300 text-center max-w-[200px]">
-                    {PHRASES[originalIndex % PHRASES.length]}
+                  <span className="text-xs md:text-sm font-bold text-blue-200 text-center max-w-[200px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    {PHRASES[index % PHRASES.length]}
                   </span>
                 </div>
               </button>
@@ -149,29 +141,18 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
           );
         })}
 
-        {/* الشمس العملاقة والرسالة الختامية باسمك */}
-        <div className="relative flex flex-col items-center justify-center mt-32 w-full pt-20">
-          {/* توهج الشمس الخلفي */}
-          <div className="absolute top-0 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-gradient-to-r from-orange-600 via-yellow-500 to-yellow-300 rounded-full blur-[100px] animate-pulse z-0" style={{ animationDuration: '4s' }}></div>
-
-          {/* جسم الشمس المضيء */}
-          <div className="relative z-10 w-64 h-64 md:w-96 md:h-96 bg-gradient-to-br from-yellow-100 via-yellow-500 to-orange-600 rounded-full flex items-center justify-center border-4 border-yellow-300/60 shadow-[inset_0_0_80px_rgba(255,100,0,0.9),0_0_100px_rgba(255,200,0,1)]">
-            <span className="text-4xl md:text-6xl font-black text-orange-900/50 drop-shadow-md">الشمس</span>
-          </div>
-
-          {/* الرسالة الختامية لمحمد الكيلاني */}
-          <div className="relative z-20 mt-16 text-center bg-black/70 p-8 md:p-10 rounded-3xl border border-yellow-500/40 backdrop-blur-xl max-w-3xl drop-shadow-[0_0_40px_rgba(255,150,0,0.2)] mx-4">
-            <p className="text-2xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-100 to-orange-400 font-black mb-6 leading-relaxed">
-              لقد كانت رحلة مليئة بالمعرفة، شكراً لكم على زيارة لعبتي المتواضعة
-            </p>
-            <div className="h-px w-2/3 bg-gradient-to-r from-transparent via-yellow-500 to-transparent mx-auto mb-6"></div>
-            <p className="text-xl md:text-2xl text-yellow-100 font-bold">
-        كان معكم <br/>
-              <span className="inline-block mt-4 text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 drop-shadow-lg">
-                محمد احمد الكيلاني
-              </span>
-            </p>
-          </div>
+        {/* الرسالة الختامية باسمك (تظهر في أسفل الصفحة بعد آخر كوكب مباشرة) */}
+        <div className="relative z-20 mt-10 text-center p-8 md:p-10 max-w-3xl mx-4 mb-20">
+          <p className="text-2xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-100 to-orange-400 font-black mb-6 leading-relaxed drop-shadow-lg">
+            لقد كانت رحلة مليئة بالمعرفة، شكراً لكم على زيارة لعبتي المتواضعة
+          </p>
+          <div className="h-px w-2/3 bg-gradient-to-r from-transparent via-yellow-500 to-transparent mx-auto mb-6"></div>
+          <p className="text-xl md:text-2xl text-yellow-100 font-bold drop-shadow-md">
+            كان معكم <br/>
+            <span className="inline-block mt-4 text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 drop-shadow-lg">
+              محمد احمد الكيلاني
+            </span>
+          </p>
         </div>
 
       </div>
