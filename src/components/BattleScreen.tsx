@@ -120,10 +120,10 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
         }
         .hero-idle { background-image: url(${heroIdle}); animation: play-sprite 0.8s steps(8) infinite; }
         .hero-attack { background-image: url(${heroAttack}); animation: play-sprite 0.6s steps(6) forwards; }
-        .hero-death { background-image: url(${heroDeath}); animation: play-sprite 0.8s steps(6) forwards; }
+        .hero-death { background-image: url(${heroIdle}); animation: play-sprite 0.8s steps(6) forwards; opacity: 0.5; }
         .wizard-idle { background-image: url(${wizardIdle}); animation: play-sprite 0.8s steps(8) infinite; transform: scaleX(-1); }
         .wizard-attack { background-image: url(${wizardAttack}); animation: play-sprite 0.6s steps(8) forwards; transform: scaleX(-1); }
-        .wizard-death { background-image: url(${wizardDeath}); animation: play-sprite 0.8s steps(7) forwards; transform: scaleX(-1); }
+        .wizard-death { background-image: url(${wizardIdle}); animation: play-sprite 0.8s steps(7) forwards; transform: scaleX(-1); opacity: 0.5; }
         
         .arena-floor {
           position: absolute; bottom: 0; left: -50%; width: 200%; height: 350px;
