@@ -25,8 +25,8 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
   const [playerHp, setPlayerHp] = useState(currentPlayer?.hp ?? 100);
   const [playerAction, setPlayerAction] = useState<'idle' | 'attack'>('idle');
   const [guardAction, setGuardAction] = useState<'idle' | 'attack'>('idle');
-  const [playerPos, setPlayerPos] = useState(0); 
-  const [guardPos, setGuardPos] = useState(0);  
+  const [playerPos, setPlayerPos] = useState(0); // إزاحة لليمين
+  const [guardPos, setGuardPos] = useState(0);  // إزاحة لليسار
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
 
   const currentQ: Question | null = questions[qIndex % questions.length] || null;
@@ -37,7 +37,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
     if (idx === currentQ.correctIndex) {
       playSound('correct');
       setFeedback('correct');
-      setPlayerPos(250); 
+      setPlayerPos(250); // يركض لنص الشاشة
       
       setTimeout(() => {
         setPlayerAction('attack');
@@ -59,7 +59,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
     } else {
       playSound('wrong');
       setFeedback('wrong');
-      setGuardPos(-250); 
+      setGuardPos(-250); // الوحش يركض لليسار لعند البطل
       
       setTimeout(() => {
         setGuardAction('attack');
@@ -170,3 +170,4 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
 };
 
 export default BattleScreen;
+
