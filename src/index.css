@@ -125,6 +125,16 @@
   75% { transform: translateY(8px) translateX(-5px); }
 }
 
+@keyframes rocket-fly-right {
+  0% { left: 20%; opacity: 1; }
+  100% { left: 75%; opacity: 0; }
+}
+
+@keyframes rocket-fly-left {
+  0% { right: 20%; opacity: 1; }
+  100% { right: 75%; opacity: 0; }
+}
+
 .animate-float { animation: float 3s ease-in-out infinite; }
 .animate-float-slow { animation: float-slow 4s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
