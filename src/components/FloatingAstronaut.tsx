@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import astronautImg from '@/assets/astronaut.png';
+const astronautImg = '/src/assets/ui/astronaut.png';
 
 const FloatingAstronaut = () => {
   const ref = useRef<HTMLDivElement>(null);

@@ -2,11 +2,29 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { CHARACTERS, ISLANDS, playSound, Question } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
 
-// تبديل الصور: الساحر صار هو البطل والمقاتل صار هو الوحش
-import playerIdle from '@/assets/combat/evil-wizard-idle.png';
-import playerAttack from '@/assets/combat/evil-wizard-attack.png';
-import monsterIdle from '@/assets/combat/martial-hero-idle.png';
-import monsterAttack from '@/assets/combat/martial-hero-attack.png';
+const getHeroImage = (folder: string, action: 'idle' | 'attack'): string => {
+  const base = `/src/assets/combat/${folder}`;
+  if (folder === 'hero3') {
+    return action === 'attack' ? `${base}/Sprites/Attack1.png` : `${base}/Sprites/Idle.png`;
+  }
+  if (folder === 'hero2') {
+    return action === 'attack' ? `${base}/Attack_1.png` : `${base}/Idle.png`;
+  }
+  return action === 'attack' ? `${base}/Attack1.png` : `${base}/Idle.png`;
+};
+
+const getMonsterImage = (folder: string, action: 'idle' | 'attack'): string => {
+  const base = `/src/assets/combat/${folder}`;
+  if (folder === 'monster2') {
+    return action === 'attack'
+      ? `${base}/Individual Sprite/Attack/Bringer-of-Death_Attack_1.png`
+      : `${base}/Individual Sprite/Idle/Bringer-of-Death_Idle_1.png`;
+  }
+  if (folder === 'monster1') {
+    return action === 'attack' ? `${base}/Sprites/Attack.png` : `${base}/Sprites/Idle.png`;
+  }
+  return action === 'attack' ? `${base}/Sprites/Attack1.png` : `${base}/Sprites/Idle.png`;
+};
 
 const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: number, islandId: number, onBack: () => void, onVictory: () => void }) => {
   const { state, currentPlayer, updatePlayer } = useGame();
@@ -79,66 +97,54 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
     }
   }, [currentPlayer, currentQ, feedback, guardHp, playerHp, state.battleSettings, updatePlayer, onVictory, onBack]);
 
+  const heroFolder = CHARACTERS.find(c => c.id === currentPlayer?.characterId)?.folder || 'hero1';
+  const monsterFolder = ISLANDS[islandId]?.enemyFolder || 'monster1';
+
   if (!currentPlayer || !currentQ) return null;
 
   return (
     <div className="min-h-screen relative flex flex-col z-10 overflow-hidden bg-[#050510]">
-      <style>{`
-        @keyframes play-sprite { from { background-position: 0px; } to { background-position: -2048px; } }
-        
-        .sprite-player {
-          width: 256px; height: 256px;
-          background-size: 2048px 256px;
-          image-rendering: pixelated;
-          transition: transform 0.4s ease-out;
-          /* الساحر عادةً ينظر لليسار في الملف الأصلي، لذا سنقلبه لينظر لليمين (البطولة) */
-          transform: scaleX(-1); 
-        }
-        .player-idle { background-image: url(${playerIdle}); animation: play-sprite 0.8s steps(8) infinite; }
-        .player-attack { background-image: url(${playerAttack}); animation: play-sprite 0.6s steps(8) forwards; }
-
-        .sprite-monster {
-          width: 256px; height: 256px;
-          background-size: 2048px 256px;
-          image-rendering: pixelated;
-          transition: transform 0.4s ease-out;
-          /* المقاتل ينظر لليمين، سنتركه كما هو ليرى البطل (أو نقلبه لو لزم) */
-        }
-        .monster-idle { background-image: url(${monsterIdle}); animation: play-sprite 0.8s steps(8) infinite; }
-        .monster-attack { background-image: url(${monsterAttack}); animation: play-sprite 0.6s steps(8) forwards; }
-        
-        .arena-bg {
-          position: absolute; inset: 0;
-          background: radial-gradient(circle at 50% 80%, #1e1e3f 0%, #050510 70%);
-          z-index: -1;
-        }
-        .floor {
-          position: absolute; bottom: 0; width: 100%; height: 300px;
-          background: linear-gradient(transparent, rgba(59,130,246,0.1));
-          border-top: 1px solid rgba(59,130,246,0.2);
-          transform: perspective(500px) rotateX(40deg);
-        }
-      `}</style>
-
-      <div className="arena-bg"><div className="floor" /></div>
+      <div
+        className="absolute inset-0 -z-10"
+        style={{ background: 'radial-gradient(circle at 50% 80%, #1e1e3f 0%, #050510 70%)' }}
+      >
+        <div
+          className="absolute bottom-0 w-full h-72"
+          style={{
+            background: 'linear-gradient(transparent, rgba(59,130,246,0.1))',
+            borderTop: '1px solid rgba(59,130,246,0.2)',
+            transform: 'perspective(500px) rotateX(40deg)',
+          }}
+        />
+      </div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-4 z-10">
         <div className="relative w-full max-w-6xl h-[450px] flex items-end justify-between px-10">
-          
-          {/* الساحر البطل - يسار */}
-          <div className="flex flex-col items-center" style={{ transform: `translateX(${playerPos}px)` }}>
-            <div className={`sprite-player ${playerAction === 'attack' ? 'player-attack' : 'player-idle'}`} />
+
+          {/* البطل - يسار */}
+          <div className="flex flex-col items-center transition-transform duration-300" style={{ transform: `translateX(${playerPos}px)` }}>
+            <img
+              src={getHeroImage(heroFolder, playerAction)}
+              alt="hero"
+              className="w-48 h-48 md:w-64 md:h-64 object-contain image-rendering-pixelated scale-x-[-1] transition-all duration-200"
+              style={{ imageRendering: 'pixelated' }}
+            />
             <div className="w-32 h-2.5 bg-gray-900 rounded-full border border-blue-500/50 mt-4 overflow-hidden">
-              <div className="h-full bg-blue-500 transition-all shadow-[0_0_15px_#3b82f6]" style={{ width: `${(playerHp/currentPlayer.maxHp)*100}%` }} />
+              <div className="h-full bg-blue-500 transition-all shadow-[0_0_15px_#3b82f6]" style={{ width: `${(playerHp / currentPlayer.maxHp) * 100}%` }} />
             </div>
             <p className="text-sm text-blue-300 font-black mt-2 uppercase">{currentPlayer.name}</p>
           </div>
 
-          {/* المقاتل الوحش - يمين */}
-          <div className="flex flex-col items-center" style={{ transform: `translateX(${guardPos}px)` }}>
-            <div className={`sprite-monster ${guardAction === 'attack' ? 'monster-attack' : 'monster-idle'} ${feedback === 'correct' ? 'brightness-150' : ''}`} />
+          {/* الوحش - يمين */}
+          <div className="flex flex-col items-center transition-transform duration-300" style={{ transform: `translateX(${guardPos}px)` }}>
+            <img
+              src={getMonsterImage(monsterFolder, guardAction)}
+              alt="monster"
+              className={`w-48 h-48 md:w-64 md:h-64 object-contain transition-all duration-200 ${feedback === 'correct' ? 'brightness-150' : ''}`}
+              style={{ imageRendering: 'pixelated' }}
+            />
             <div className="w-32 h-2.5 bg-gray-900 rounded-full border border-red-500/50 mt-4 overflow-hidden">
-              <div className="h-full bg-red-500 transition-all shadow-[0_0_15px_#ef4444]" style={{ width: `${(guardHp/guardMaxHp)*100}%` }} />
+              <div className="h-full bg-red-500 transition-all shadow-[0_0_15px_#ef4444]" style={{ width: `${(guardHp / guardMaxHp) * 100}%` }} />
             </div>
             <p className="text-sm text-red-400 font-black mt-2 uppercase">حارس الجزيرة</p>
           </div>

@@ -4,7 +4,7 @@ import { playSound, PLANETS, CHARACTERS } from '@/lib/gameState';
 import { PLANET_IMAGES } from '@/lib/constants';
 import ShopModal from './ShopModal';
 import Leaderboard from './Leaderboard';
-import goldBagsImg from '@/assets/gold-bags.png';
+const goldBagsImg = '/src/assets/ui/gold-bags.png';
 
 interface Props {
   onSelectPlanet: (id: number) => void;

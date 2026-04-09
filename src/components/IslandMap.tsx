@@ -1,13 +1,10 @@
 import { ISLANDS, playSound } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
-import islandsBg from '@/assets/islands-bg.png';
-import island1 from '@/assets/island1.png';
-import island2 from '@/assets/island2.png';
-import island3 from '@/assets/island3.png';
-import island4 from '@/assets/island4.png';
-import island5 from '@/assets/island5.png';
 
-const ISLAND_IMAGES = [island1, island2, island3, island4, island5];
+const islandsBg = '/src/assets/islands/islands-bg.png';
+
+const getIslandImage = (index: number) =>
+  `/src/assets/islands/island${(index % 31) + 1}.png`;
 
 interface Props {
   planetId: number;
@@ -55,7 +52,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
               >
                 {/* تكبير حجم الجزر بشكل ملحوظ هنا */}
                 <img
-                  src={ISLAND_IMAGES[i]}
+                  src={getIslandImage(i)}
                   alt={island.name}
                   className="w-60 h-60 md:w-80 md:h-80 object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:drop-shadow-[0_20px_35px_rgba(0,0,0,0.7)]"
                 />

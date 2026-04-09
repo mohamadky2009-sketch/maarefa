@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GameProvider, useGame } from '@/context/GameContext';
 import StarField from '@/components/StarField';
 import EntryScreen from '@/components/EntryScreen';
@@ -6,7 +6,7 @@ import PlanetMap from '@/components/PlanetMap';
 import IslandMap from '@/components/IslandMap';
 import BattleScreen from '@/components/BattleScreen';
 import AdminPanel from '@/components/AdminPanel';
-import { ISLANDS } from '@/lib/gameState';
+import { ISLANDS, PLANETS } from '@/lib/gameState';
 
 type Screen = 
   | { type: 'entry' }
@@ -19,42 +19,71 @@ const GameApp = () => {
   const { currentPlayer, updatePlayer } = useGame();
   const [screen, setScreen] = useState<Screen>({ type: 'entry' });
 
-  // Auto-navigate if player is logged in
-  if (currentPlayer && screen.type === 'entry') {
-    setScreen({ type: 'planets' });
-  }
+  // الانتقال التلقائي عند وجود لاعب مسجل
+  useEffect(() => {
+    if (currentPlayer && screen.type === 'entry') {
+      setScreen({ type: 'planets' });
+    }
+  }, [currentPlayer, screen.type]);
 
   const handleVictory = (planetId: number, islandId: number) => {
     if (!currentPlayer) return;
-    const nextIsland = islandId + 1;
-    const updatedIslands = { ...currentPlayer.unlockedIslands };
-    
-    if (nextIsland < ISLANDS.length) {
-      updatedIslands[planetId] = [...(updatedIslands[planetId] || []), nextIsland];
-    }
+
+    // جلب جزر الكوكب الحالي
+    const currentPlanetIslands = ISLANDS.filter(is => is.planetId === planetId);
+    const islandIndexInPlanet = currentPlanetIslands.findIndex(is => is.id === islandId);
+    const isLastIslandInPlanet = islandIndexInPlanet === currentPlanetIslands.length - 1;
 
     let updatedPlanets = [...currentPlayer.unlockedPlanets];
-    if (nextIsland >= ISLANDS.length && !updatedPlanets.includes(planetId + 1) && planetId + 1 < 9) {
-      updatedPlanets = [...updatedPlanets, planetId + 1];
-      updatedIslands[planetId + 1] = [0];
-    }
+    let updatedIslands = { ...currentPlayer.unlockedIslands };
 
-    updatePlayer({
-      ...currentPlayer,
-      unlockedIslands: updatedIslands,
-      unlockedPlanets: updatedPlanets,
-      hp: currentPlayer.maxHp,
-    });
-
-    if (nextIsland < ISLANDS.length) {
-      setScreen({ type: 'islands', planetId });
+    if (isLastIslandInPlanet) {
+      // إذا ختم الكوكب، نفتح الكوكب التالي في الرحلة (نحو الشمس)
+      const nextPlanetId = planetId + 1;
+      
+      if (nextPlanetId < PLANETS.length) {
+        if (!updatedPlanets.includes(nextPlanetId)) {
+          updatedPlanets.push(nextPlanetId);
+          // فتح أول جزيرة في الكوكب الجديد
+          const firstIslandOfNextPlanet = ISLANDS.find(is => is.planetId === nextPlanetId);
+          if (firstIslandOfNextPlanet) {
+            updatedIslands[nextPlanetId] = [firstIslandOfNextPlanet.id];
+          }
+        }
+        
+        updatePlayer({
+          ...currentPlayer,
+          unlockedPlanets: updatedPlanets,
+          unlockedIslands: updatedIslands,
+          gold: currentPlayer.gold + 100, // مكافأة ختم كوكب
+          hp: currentPlayer.maxHp,
+        });
+        setScreen({ type: 'planets' }); // العودة للخريطة لاختيار الكوكب الجديد
+      } else {
+        // إذا ختم الشمس (آخر كوكب)
+        alert("تهانينا! لقد أنقذت المجرة ووصلت إلى قلب الشمس!");
+        setScreen({ type: 'planets' });
+      }
+      
     } else {
-      setScreen({ type: 'planets' });
+      // فتح الجزيرة التالية في نفس الكوكب
+      const nextIslandGlobalId = currentPlanetIslands[islandIndexInPlanet + 1].id;
+      if (!updatedIslands[planetId].includes(nextIslandGlobalId)) {
+        updatedIslands[planetId] = [...updatedIslands[planetId], nextIslandGlobalId];
+      }
+
+      updatePlayer({
+        ...currentPlayer,
+        unlockedIslands: updatedIslands,
+        gold: currentPlayer.gold + 30, // مكافأة جزيرة
+        hp: currentPlayer.maxHp,
+      });
+      setScreen({ type: 'islands', planetId });
     }
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden bg-black text-white">
       <StarField />
       
       {screen.type === 'entry' && (
