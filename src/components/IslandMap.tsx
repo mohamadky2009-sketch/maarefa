@@ -30,7 +30,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
 
         <h2 className="text-2xl font-bold text-center text-foreground mb-8">جزر الكوكب</h2>
 
-        <div className="flex flex-wrap justify-center gap-6 max-w-4xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto pb-16">
           {ISLANDS.map((island, i) => {
             const unlocked = unlockedIslands.includes(island.id);
             return (
@@ -50,7 +50,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
                 <img
                   src={ISLAND_IMAGES[i]}
                   alt={island.name}
-                  className="w-32 h-28 md:w-40 md:h-36 object-contain drop-shadow-2xl"
+                  className="w-40 h-36 md:w-52 md:h-48 object-contain drop-shadow-2xl"
                 />
                 {!unlocked && <span className="absolute top-2 left-1/2 -translate-x-1/2 text-2xl">🔒</span>}
                 <span className="font-bold text-foreground text-sm">{island.name}</span>
