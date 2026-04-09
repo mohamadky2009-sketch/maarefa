@@ -4,11 +4,10 @@ import astronautImg from '@/assets/astronaut.png';
 const FloatingAstronaut = () => {
   const ref = useRef<HTMLDivElement>(null);
   
-  // يبدأ من منتصف الشاشة
+  // نقطة البداية
   const posRef = useRef({ x: 50, y: 50 });
-  // سرعة ثابتة ومستمرة في الاتجاهين (بدون عشوائية)
-  const velRef = useRef({ x: 0.6, y: 0.4 });
-  // متغير جديد مسؤول عن الدوران المستمر (مثل Among Us)
+  // تقليل السرعة لتكون هادئة (0.2 و 0.15 بدلاً من 0.6)
+  const velRef = useRef({ x: 0.2, y: 0.15 });
   const rotRef = useRef(0);
 
   useEffect(() => {
@@ -20,17 +19,16 @@ const FloatingAstronaut = () => {
       pos.x += vel.x;
       pos.y += vel.y;
 
-      // يرتد لما يوصل لحواف الشاشة ويستمر بحركته
-      if (pos.x > 90 || pos.x < 0) vel.x *= -1;
-      if (pos.y > 90 || pos.y < 0) vel.y *= -1;
+      // الارتداد عند الحواف
+      if (pos.x > 85 || pos.x < 5) vel.x *= -1;
+      if (pos.y > 80 || pos.y < 5) vel.y *= -1;
 
-      // زيادة الدوران بشكل مستمر (تقدر تزيد الرقم 1.5 لـ 3 لو بدك ياه يلف أسرع)
-      rotRef.current += 1.5;
+      // دوران هادئ ومستمر (0.5 درجة في كل إطار)
+      rotRef.current += 0.5;
 
       if (ref.current) {
         ref.current.style.left = `${pos.x}%`;
         ref.current.style.top = `${pos.y}%`;
-        // تطبيق الدوران المستمر مع الحركة
         ref.current.style.transform = `translate(-50%, -50%) rotate(${rotRef.current}deg)`;
       }
 
@@ -46,10 +44,11 @@ const FloatingAstronaut = () => {
       className="fixed z-20 pointer-events-none"
       style={{ left: '50%', top: '50%' }}
     >
+      {/* تم تثبيت الحجم هنا (w-32) لمنع التغير المفاجئ على التابلت */}
       <img 
         src={astronautImg} 
         alt="astronaut" 
-        className="w-24 h-28 md:w-32 md:h-36 object-contain drop-shadow-2xl" 
+        className="w-32 h-auto object-contain drop-shadow-2xl" 
       />
     </div>
   );
