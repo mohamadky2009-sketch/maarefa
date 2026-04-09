@@ -2,11 +2,11 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { CHARACTERS, ISLANDS, playSound, Question } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
 
-// الصور الأساسية من المجلد اللي جهزناه
-import heroIdle from '@/assets/combat/martial-hero-idle.png';
-import heroAttack from '@/assets/combat/martial-hero-attack.png';
-import wizardIdle from '@/assets/combat/evil-wizard-idle.png';
-import wizardAttack from '@/assets/combat/evil-wizard-attack.png';
+// تبديل الصور: الساحر صار هو البطل والمقاتل صار هو الوحش
+import playerIdle from '@/assets/combat/evil-wizard-idle.png';
+import playerAttack from '@/assets/combat/evil-wizard-attack.png';
+import monsterIdle from '@/assets/combat/martial-hero-idle.png';
+import monsterAttack from '@/assets/combat/martial-hero-attack.png';
 
 const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: number, islandId: number, onBack: () => void, onVictory: () => void }) => {
   const { state, currentPlayer, updatePlayer } = useGame();
@@ -25,8 +25,8 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
   const [playerHp, setPlayerHp] = useState(currentPlayer?.hp ?? 100);
   const [playerAction, setPlayerAction] = useState<'idle' | 'attack'>('idle');
   const [guardAction, setGuardAction] = useState<'idle' | 'attack'>('idle');
-  const [playerPos, setPlayerPos] = useState(0); // إزاحة لليمين
-  const [guardPos, setGuardPos] = useState(0);  // إزاحة لليسار
+  const [playerPos, setPlayerPos] = useState(0); 
+  const [guardPos, setGuardPos] = useState(0);  
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
 
   const currentQ: Question | null = questions[qIndex % questions.length] || null;
@@ -37,7 +37,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
     if (idx === currentQ.correctIndex) {
       playSound('correct');
       setFeedback('correct');
-      setPlayerPos(250); // يركض لنص الشاشة
+      setPlayerPos(250); 
       
       setTimeout(() => {
         setPlayerAction('attack');
@@ -59,7 +59,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
     } else {
       playSound('wrong');
       setFeedback('wrong');
-      setGuardPos(-250); // الوحش يركض لليسار لعند البطل
+      setGuardPos(-250); 
       
       setTimeout(() => {
         setGuardAction('attack');
@@ -84,26 +84,28 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
   return (
     <div className="min-h-screen relative flex flex-col z-10 overflow-hidden bg-[#050510]">
       <style>{`
-        @keyframes play-hero { from { background-position: 0px; } to { background-position: -2048px; } }
-        .sprite-hero {
-          width: 256px; height: 256px;
-          background-size: 2048px 256px; /* 8 فريمات * 256px */
-          image-rendering: pixelated;
-          transition: transform 0.4s ease-out;
-        }
-        .hero-idle { background-image: url(${heroIdle}); animation: play-hero 0.8s steps(8) infinite; }
-        .hero-attack { background-image: url(${heroAttack}); animation: play-hero 0.6s steps(8) forwards; }
-
-        @keyframes play-wizard { from { background-position: 0px; } to { background-position: -2048px; } }
-        .sprite-wizard {
+        @keyframes play-sprite { from { background-position: 0px; } to { background-position: -2048px; } }
+        
+        .sprite-player {
           width: 256px; height: 256px;
           background-size: 2048px 256px;
           image-rendering: pixelated;
           transition: transform 0.4s ease-out;
-          transform: scaleX(-1); /* الوحش ينظر لليسار */
+          /* الساحر عادةً ينظر لليسار في الملف الأصلي، لذا سنقلبه لينظر لليمين (البطولة) */
+          transform: scaleX(-1); 
         }
-        .wizard-idle { background-image: url(${wizardIdle}); animation: play-wizard 0.8s steps(8) infinite; }
-        .wizard-attack { background-image: url(${wizardAttack}); animation: play-wizard 0.6s steps(8) forwards; }
+        .player-idle { background-image: url(${playerIdle}); animation: play-sprite 0.8s steps(8) infinite; }
+        .player-attack { background-image: url(${playerAttack}); animation: play-sprite 0.6s steps(8) forwards; }
+
+        .sprite-monster {
+          width: 256px; height: 256px;
+          background-size: 2048px 256px;
+          image-rendering: pixelated;
+          transition: transform 0.4s ease-out;
+          /* المقاتل ينظر لليمين، سنتركه كما هو ليرى البطل (أو نقلبه لو لزم) */
+        }
+        .monster-idle { background-image: url(${monsterIdle}); animation: play-sprite 0.8s steps(8) infinite; }
+        .monster-attack { background-image: url(${monsterAttack}); animation: play-sprite 0.6s steps(8) forwards; }
         
         .arena-bg {
           position: absolute; inset: 0;
@@ -121,25 +123,24 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
       <div className="arena-bg"><div className="floor" /></div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-4 z-10">
-        {/* ساحة القتال */}
         <div className="relative w-full max-w-6xl h-[450px] flex items-end justify-between px-10">
           
-          {/* البطل - يسار */}
+          {/* الساحر البطل - يسار */}
           <div className="flex flex-col items-center" style={{ transform: `translateX(${playerPos}px)` }}>
-            <div className={`sprite-hero ${playerAction === 'attack' ? 'hero-attack' : 'hero-idle'}`} />
+            <div className={`sprite-player ${playerAction === 'attack' ? 'player-attack' : 'player-idle'}`} />
             <div className="w-32 h-2.5 bg-gray-900 rounded-full border border-blue-500/50 mt-4 overflow-hidden">
               <div className="h-full bg-blue-500 transition-all shadow-[0_0_15px_#3b82f6]" style={{ width: `${(playerHp/currentPlayer.maxHp)*100}%` }} />
             </div>
             <p className="text-sm text-blue-300 font-black mt-2 uppercase">{currentPlayer.name}</p>
           </div>
 
-          {/* الوحش - يمين */}
-          <div className="flex flex-col items-center" style={{ transform: `translateX(${guardPos}px) scaleX(-1)` }}>
-            <div className={`sprite-wizard ${guardAction === 'attack' ? 'wizard-attack' : 'wizard-idle'} ${feedback === 'correct' ? 'brightness-150' : ''}`} />
-            <div className="w-32 h-2.5 bg-gray-900 rounded-full border border-red-500/50 mt-4 overflow-hidden" style={{ transform: 'scaleX(-1)' }}>
+          {/* المقاتل الوحش - يمين */}
+          <div className="flex flex-col items-center" style={{ transform: `translateX(${guardPos}px)` }}>
+            <div className={`sprite-monster ${guardAction === 'attack' ? 'monster-attack' : 'monster-idle'} ${feedback === 'correct' ? 'brightness-150' : ''}`} />
+            <div className="w-32 h-2.5 bg-gray-900 rounded-full border border-red-500/50 mt-4 overflow-hidden">
               <div className="h-full bg-red-500 transition-all shadow-[0_0_15px_#ef4444]" style={{ width: `${(guardHp/guardMaxHp)*100}%` }} />
             </div>
-            <p className="text-sm text-red-400 font-black mt-2 uppercase" style={{ transform: 'scaleX(-1)' }}>حارس الجزيرة</p>
+            <p className="text-sm text-red-400 font-black mt-2 uppercase">حارس الجزيرة</p>
           </div>
         </div>
 
@@ -152,8 +153,8 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
                 key={i}
                 onClick={() => handleAnswer(i)}
                 disabled={!!feedback}
-                className={`py-5 px-8 rounded-2xl border-2 font-bold text-xl transition-all duration-300 ${
-                  feedback && i === currentQ.correctIndex ? 'border-green-500 bg-green-500/20 text-white' :
+                className={`py-5 px-8 rounded-2xl border-2 font-bold text-xl transition-all duration-300 transform active:scale-95 ${
+                  feedback && i === currentQ.correctIndex ? 'border-green-500 bg-green-500/20 text-white shadow-[0_0_20px_#22c55e]' :
                   feedback === 'wrong' ? 'border-red-500/20 opacity-40' :
                   'border-white/5 bg-white/5 text-gray-300 hover:bg-blue-500/20 hover:border-blue-500'
                 }`}
