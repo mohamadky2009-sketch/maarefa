@@ -1,5 +1,12 @@
 import { ISLANDS, playSound } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
+import island1 from '@/assets/island1.png';
+import island2 from '@/assets/island2.png';
+import island3 from '@/assets/island3.png';
+import island4 from '@/assets/island4.png';
+import island5 from '@/assets/island5.png';
+
+const ISLAND_IMAGES = [island1, island2, island3, island4, island5];
 
 interface Props {
   planetId: number;
@@ -23,7 +30,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
 
         <h2 className="text-2xl font-bold text-center text-foreground mb-8">جزر الكوكب</h2>
 
-        <div className="flex flex-wrap justify-center gap-6 max-w-3xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-6 max-w-4xl mx-auto">
           {ISLANDS.map((island, i) => {
             const unlocked = unlockedIslands.includes(island.id);
             return (
@@ -33,15 +40,19 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
                   if (unlocked) { playSound('click'); onSelectIsland(island.id); }
                   else playSound('wrong');
                 }}
-                className={`relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300 ${
+                className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300 ${
                   unlocked
-                    ? 'border-primary bg-primary/10 hover:scale-105 cursor-pointer animate-float-slow'
-                    : 'border-border bg-card/50 opacity-50 cursor-not-allowed'
+                    ? 'border-primary/50 bg-primary/5 hover:scale-105 cursor-pointer animate-float-slow'
+                    : 'border-border bg-card/50 opacity-50 cursor-not-allowed grayscale'
                 }`}
                 style={{ animationDelay: `${i * 0.5}s` }}
               >
-                <span className="text-5xl">{island.emoji}</span>
-                {!unlocked && <span className="absolute top-2 text-xl">🔒</span>}
+                <img
+                  src={ISLAND_IMAGES[i]}
+                  alt={island.name}
+                  className="w-32 h-28 md:w-40 md:h-36 object-contain drop-shadow-2xl"
+                />
+                {!unlocked && <span className="absolute top-2 left-1/2 -translate-x-1/2 text-2xl">🔒</span>}
                 <span className="font-bold text-foreground text-sm">{island.name}</span>
               </button>
             );

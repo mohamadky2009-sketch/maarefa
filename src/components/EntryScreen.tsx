@@ -4,6 +4,8 @@ import FloatingAstronaut from './FloatingAstronaut';
 import RegisterModal from './RegisterModal';
 import AdminLoginModal from './AdminLoginModal';
 import { playSound } from '@/lib/gameState';
+import parchmentImg from '@/assets/parchment.png';
+import rocketImg from '@/assets/rocket.png';
 
 interface Props {
   onAdmin: () => void;
@@ -18,28 +20,41 @@ const EntryScreen = ({ onAdmin }: Props) => {
       <StarField />
       <FloatingAstronaut />
 
-      <div className="relative z-10 animate-float">
-        <div className="relative bg-gradient-to-b from-amber-900/80 to-amber-800/60 border-2 border-amber-700/50 rounded-2xl p-8 md:p-12 shadow-2xl backdrop-blur-sm max-w-md mx-4"
-          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence baseFrequency=\'0.9\' type=\'fractalNoise\'/%3E%3C/filter%3E%3Crect width=\'100\' height=\'100\' filter=\'url(%23n)\' opacity=\'0.08\'/%3E%3C/svg%3E")' }}>
-          
-          <h1 className="text-5xl md:text-6xl font-black text-center mb-2 text-accent drop-shadow-lg">
-            معرفة
-          </h1>
-          <p className="text-center text-amber-200/70 mb-8 text-sm">رحلة تعليمية في عالم اللغة العربية</p>
+      {/* Floating rocket */}
+      <div className="fixed bottom-10 left-10 z-0 pointer-events-none animate-float-slow opacity-60">
+        <img src={rocketImg} alt="rocket" className="w-16 h-24 md:w-20 md:h-28 object-contain drop-shadow-lg" />
+      </div>
 
-          <div className="space-y-4">
-            <button
-              onClick={() => { playSound('click'); setShowRegister(true); }}
-              className="w-full py-3 px-6 rounded-xl font-bold text-lg bg-primary hover:bg-primary/80 text-primary-foreground transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/30"
-            >
-              🚀 تسجيل كلاعب
-            </button>
-            <button
-              onClick={() => { playSound('click'); setShowAdmin(true); }}
-              className="w-full py-3 px-6 rounded-xl font-bold text-lg bg-destructive hover:bg-destructive/80 text-destructive-foreground transition-all duration-200 hover:scale-105 shadow-lg shadow-destructive/30"
-            >
-              🔐 دخول كأدمن
-            </button>
+      <div className="relative z-10 animate-float">
+        <div className="relative max-w-md mx-4">
+          {/* Parchment background */}
+          <img
+            src={parchmentImg}
+            alt="parchment"
+            className="absolute inset-0 w-full h-full object-fill drop-shadow-2xl"
+          />
+
+          {/* Content on parchment */}
+          <div className="relative p-10 md:p-14 flex flex-col items-center">
+            <h1 className="text-5xl md:text-6xl font-black text-center mb-2 text-amber-900 drop-shadow-lg">
+              معرفة
+            </h1>
+            <p className="text-center text-amber-800/70 mb-8 text-sm">رحلة تعليمية في عالم اللغة العربية</p>
+
+            <div className="space-y-4 w-full">
+              <button
+                onClick={() => { playSound('click'); setShowRegister(true); }}
+                className="w-full py-3 px-6 rounded-xl font-bold text-lg bg-primary hover:bg-primary/80 text-primary-foreground transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/30"
+              >
+                🚀 تسجيل كلاعب
+              </button>
+              <button
+                onClick={() => { playSound('click'); setShowAdmin(true); }}
+                className="w-full py-3 px-6 rounded-xl font-bold text-lg bg-destructive hover:bg-destructive/80 text-destructive-foreground transition-all duration-200 hover:scale-105 shadow-lg shadow-destructive/30"
+              >
+                🔐 دخول كأدمن
+              </button>
+            </div>
           </div>
         </div>
       </div>
