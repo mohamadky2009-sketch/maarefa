@@ -25,8 +25,8 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
   const [playerHp, setPlayerHp] = useState(currentPlayer?.hp ?? 100);
   const [playerAction, setPlayerAction] = useState<'idle' | 'attack'>('idle');
   const [guardAction, setGuardAction] = useState<'idle' | 'attack'>('idle');
-  const [playerPos, setPlayerPos] = useState(0);
-  const [guardPos, setGuardPos] = useState(0);
+  const [playerPos, setPlayerPos] = useState(0); // إزاحة اللاعب (لليمين)
+  const [guardPos, setGuardPos] = useState(0);  // إزاحة الوحش (لليسار)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
 
   const currentQ: Question | null = questions[qIndex % questions.length] || null;
@@ -37,9 +37,12 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
     if (idx === currentQ.correctIndex) {
       playSound('correct');
       setFeedback('correct');
-      setPlayerPos(180); // اندفاع
+      
+      // 1. اندفاع البطل لليمين (باتجاه الوحش)
+      setPlayerPos(200); 
       
       setTimeout(() => {
+        // 2. تفعيل أنيميشن الهجوم
         setPlayerAction('attack');
         const newGuardHp = Math.max(0, guardHp - state.battleSettings.playerAttack);
         setGuardHp(newGuardHp);
@@ -50,6 +53,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
       }, 300);
 
       setTimeout(() => {
+        // 3. العودة للمكان الطبيعي
         setPlayerAction('idle');
         setPlayerPos(0);
         if (guardHp > state.battleSettings.playerAttack) {
@@ -62,9 +66,12 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
     } else {
       playSound('wrong');
       setFeedback('wrong');
-      setGuardPos(-180); // اندفاع الوحش
+      
+      // 1. اندفاع الوحش لليسار (باتجاه اللاعب)
+      setGuardPos(-200);
       
       setTimeout(() => {
+        // 2. تفعيل هجوم الوحش
         setGuardAction('attack');
         const newPlayerHp = Math.max(0, playerHp - state.battleSettings.guardAttack);
         setPlayerHp(newPlayerHp);
@@ -75,6 +82,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
       }, 300);
 
       setTimeout(() => {
+        // 3. عودة الوحش لمكانه
         setGuardAction('idle');
         setGuardPos(0);
         if (playerHp > state.battleSettings.guardAttack) {
@@ -89,23 +97,28 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
 
   return (
     <div className="min-h-screen relative flex flex-col z-10 overflow-hidden bg-[#0a0a1a]">
+      
       <style>{`
-        @keyframes play-sprite { from { background-position: 0px; } to { background-position: -1024px; } }
+        @keyframes play-sprite { from { background-position: 0px; } to { background-position: -1536px; } }
         .sprite-entity {
-          width: 128px; height: 128px;
-          background-size: 1024px 128px;
+          width: 192px; height: 192px; /* تم التكبير من 128 لـ 192 */
+          background-size: 1536px 192px; /* تم تكبير الشريط أيضاً بنفس النسبة (1024 * 1.5 = 1536) */
           image-rendering: pixelated;
           transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        /* البطل على اليسار - اتجاهه الطبيعي لليمين */
         .hero-idle { background-image: url(${heroIdle}); animation: play-sprite 0.8s steps(8) infinite; }
         .hero-attack { background-image: url(${heroAttack}); animation: play-sprite 0.6s steps(6) forwards; }
+        
+        /* الوحش على اليمين - قمنا بقلبه (scaleX(-1)) لينظر لليسار */
         .wizard-idle { background-image: url(${wizardIdle}); animation: play-sprite 0.8s steps(8) infinite; transform: scaleX(-1); }
         .wizard-attack { background-image: url(${wizardAttack}); animation: play-sprite 0.6s steps(8) forwards; transform: scaleX(-1); }
         
         .arena-floor {
-          position: absolute; bottom: 0; left: -50%; width: 200%; height: 350px;
+          position: absolute; bottom: 0; left: -50%; width: 200%; height: 400px;
           background: radial-gradient(circle at 50% 100%, #1e293b 0%, transparent 80%);
-          transform: perspective(600px) rotateX(45deg); z-index: -1;
+          transform: perspective(600px) rotateX(45deg);
+          z-index: -1;
           border-top: 2px solid rgba(59, 130, 246, 0.2);
         }
         .floor-lines {
@@ -115,37 +128,42 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: { planetId: num
         }
       `}</style>
 
-      {/* الخلفية */}
+      {/* خلفية الساحة المطورة */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-[#101025] to-[#050510]" />
         <div className="arena-floor"><div className="floor-lines" /></div>
+        {/* إضاءة "سبوت لايت" مركزية */}
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full h-32 bg-blue-500/5 blur-[100px] rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-4 z-10">
-        <div className="relative w-full max-w-4xl h-72 flex items-end justify-between px-20">
-          {/* اللاعب */}
+        
+        {/* ساحة القتال - Battle Stage (تم زيادة الارتفاع ليتناسب مع الحجم الجديد) */}
+        <div className="relative w-full max-w-5xl h-96 flex items-end justify-between px-16 mb-8">
+          
+          {/* اللاعب (الآن على اليسار) */}
           <div className="flex flex-col items-center" style={{ transform: `translateX(${playerPos}px)` }}>
-            <div className={`sprite-entity ${playerAction === 'attack' ? 'hero-attack' : 'hero-idle'}`} />
-            <div className="w-24 h-2 bg-gray-900 rounded-full border border-blue-500/30 mt-2 overflow-hidden shadow-[0_0_10px_rgba(59,130,246,0.3)]">
-              <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${(playerHp/currentPlayer.maxHp)*100}%` }} />
-            </div>
-            <p className="text-[10px] text-blue-300 font-black mt-1 uppercase tracking-widest">{currentPlayer.name}</p>
+             <div className={`sprite-entity ${playerAction === 'attack' ? 'hero-attack' : 'hero-idle'}`} />
+             <div className="w-32 h-2.5 bg-gray-900 rounded-full border border-blue-500/30 mt-3 overflow-hidden shadow-[0_0_15px_rgba(59,130,246,0.4)]">
+                <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${(playerHp/currentPlayer.maxHp)*100}%` }} />
+             </div>
+             <p className="text-xs text-blue-300 font-black mt-1.5 uppercase tracking-widest drop-shadow-md">{currentPlayer.name}</p>
           </div>
 
-          <div className="text-3xl font-black text-white/5 italic select-none">BATTLE AREA</div>
+          <div className="text-4xl font-black text-white/5 italic select-none pb-10">BATTLE AREA</div>
 
-          {/* الوحش */}
+          {/* الوحش (الآن على اليمين) */}
           <div className="flex flex-col items-center" style={{ transform: `translateX(${guardPos}px)` }}>
-            <div className={`sprite-entity ${guardAction === 'attack' ? 'wizard-attack' : 'wizard-idle'} ${feedback === 'correct' ? 'animate-pulse' : ''}`} />
-            <div className="w-24 h-2 bg-gray-900 rounded-full border border-red-500/30 mt-2 overflow-hidden shadow-[0_0_10px_rgba(239,68,68,0.3)]">
-              <div className="h-full bg-red-500 transition-all duration-300" style={{ width: `${(guardHp/guardMaxHp)*100}%` }} />
-            </div>
-            <p className="text-[10px] text-red-400 font-black mt-1 uppercase tracking-widest">حارس الجزيرة</p>
+             <div className={`sprite-entity ${guardAction === 'attack' ? 'wizard-attack' : 'wizard-idle'} ${feedback === 'correct' ? 'animate-pulse' : ''}`} />
+             <div className="w-32 h-2.5 bg-gray-900 rounded-full border border-red-500/30 mt-3 overflow-hidden shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+                <div className="h-full bg-red-500 transition-all duration-300" style={{ width: `${(guardHp/guardMaxHp)*100}%` }} />
+             </div>
+             <p className="text-xs text-red-400 font-black mt-1.5 uppercase tracking-widest drop-shadow-md">حارس الجزيرة</p>
           </div>
         </div>
 
-        {/* صندوق الأسئلة */}
-        <div className="w-full max-w-xl bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[3rem] p-10 shadow-2xl mt-8">
+        {/* صندوق الأسئلة الزجاجي - يبقى في الأسفل */}
+        <div className="w-full max-w-xl bg-black/40 backdrop-blur-3xl border border-white/5 rounded-[3rem] p-10 shadow-2xl mt-4">
           <h2 className="text-2xl font-bold text-white text-center mb-8 drop-shadow-md">{currentQ.text}</h2>
           <div className="grid grid-cols-1 gap-4">
             {currentQ.options.map((opt, i) => (
