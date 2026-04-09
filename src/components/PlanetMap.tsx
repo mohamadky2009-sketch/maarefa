@@ -1,5 +1,6 @@
 import { PLANETS, CHARACTERS, playSound } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
+import goldBagsImg from '@/assets/gold-bags.png';
 import { useState } from 'react';
 import ShopModal from './ShopModal';
 import Leaderboard from './Leaderboard';
@@ -58,7 +59,7 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
           <span className="text-xs font-bold text-primary">{currentPlayer.xp}</span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm font-bold text-accent">🪙 {currentPlayer.gold}</span>
+          <span className="text-sm font-bold text-accent flex items-center gap-1"><img src={goldBagsImg} alt="gold" className="w-5 h-5 object-contain inline" /> {currentPlayer.gold}</span>
           <button onClick={() => { playSound('click'); setShowLeaderboard(true); }} className="text-sm px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-all">🏆</button>
           <button onClick={() => { playSound('click'); setShowShop(true); }} className="text-sm px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-all">🏪</button>
           <button onClick={() => { playSound('click'); logout(); }} className="text-sm px-3 py-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/40 text-destructive transition-all">خروج</button>
