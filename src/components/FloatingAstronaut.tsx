@@ -3,9 +3,13 @@ import astronautImg from '@/assets/astronaut.png';
 
 const FloatingAstronaut = () => {
   const ref = useRef<HTMLDivElement>(null);
+  
   // يبدأ من منتصف الشاشة
   const posRef = useRef({ x: 50, y: 50 });
-  const velRef = useRef({ x: 0.5, y: 0.4 });
+  // سرعة ثابتة ومستمرة في الاتجاهين (بدون عشوائية)
+  const velRef = useRef({ x: 0.6, y: 0.4 });
+  // متغير جديد مسؤول عن الدوران المستمر (مثل Among Us)
+  const rotRef = useRef(0);
 
   useEffect(() => {
     let raf: number;
@@ -16,24 +20,18 @@ const FloatingAstronaut = () => {
       pos.x += vel.x;
       pos.y += vel.y;
 
-      // يخليه يسبح بكل مساحة الشاشة (من 0 لـ 90%)
+      // يرتد لما يوصل لحواف الشاشة ويستمر بحركته
       if (pos.x > 90 || pos.x < 0) vel.x *= -1;
       if (pos.y > 90 || pos.y < 0) vel.y *= -1;
 
-      // حركة عشوائية أقوى عشان يبين كأنه طايف بالفضاء
-      vel.x += (Math.random() - 0.5) * 0.04;
-      vel.y += (Math.random() - 0.5) * 0.04;
-
-      // تحديد سرعة الطفو عشان ما يطير بسرعة كبيرة
-      vel.x = Math.max(-0.5, Math.min(0.5, vel.x));
-      vel.y = Math.max(-0.4, Math.min(0.4, vel.y));
+      // زيادة الدوران بشكل مستمر (تقدر تزيد الرقم 1.5 لـ 3 لو بدك ياه يلف أسرع)
+      rotRef.current += 1.5;
 
       if (ref.current) {
-        // دوران بيعتمد على اتجاه حركته
-        const rotation = vel.x * 20 + vel.y * 10;
         ref.current.style.left = `${pos.x}%`;
         ref.current.style.top = `${pos.y}%`;
-        ref.current.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+        // تطبيق الدوران المستمر مع الحركة
+        ref.current.style.transform = `translate(-50%, -50%) rotate(${rotRef.current}deg)`;
       }
 
       raf = requestAnimationFrame(update);
