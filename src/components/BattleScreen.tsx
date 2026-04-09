@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { CHARACTERS, ISLANDS, playSound, Question } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
-import monsterImg from '@/assets/monster.png';
+
+// الصور اللي جهزناها في Assets
+import heroIdle from '@/assets/combat/hero-knight-idle.png';
+import heroAttack from '@/assets/combat/hero-knight-attack.png';
+import wizardIdle from '@/assets/combat/evil-wizard-idle.png';
+import wizardAttack from '@/assets/combat/evil-wizard-attack.png';
 import goldBagsImg from '@/assets/gold-bags.png';
-import rocketImg from '@/assets/rocket.png';
 
 interface Props {
   planetId: number;
@@ -14,7 +18,6 @@ interface Props {
 
 const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
   const { state, currentPlayer, updatePlayer } = useGame();
-
   const char = CHARACTERS.find(c => c.id === currentPlayer?.characterId);
   const islandName = ISLANDS[islandId]?.name || 'جزيرة';
 
@@ -26,19 +29,20 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
   const questionsNeeded = state.battleSettings.questionsPerGuard[String(islandId)] || 3;
   const guardMaxHp = questionsNeeded * state.battleSettings.playerAttack;
 
+  // حالات الحركة والوضعية
   const [qIndex, setQIndex] = useState(0);
   const [guardHp, setGuardHp] = useState(guardMaxHp);
   const [playerHp, setPlayerHp] = useState(currentPlayer?.hp ?? 100);
-  const [playerAnim, setPlayerAnim] = useState('');
-  const [guardAnim, setGuardAnim] = useState('');
+  const [playerAction, setPlayerAction] = useState<'idle' | 'attack'>('idle');
+  const [guardAction, setGuardAction] = useState<'idle' | 'attack'>('idle');
+  const [playerOffset, setPlayerOffset] = useState(0); // لتحريك البطل للامام
+  const [guardOffset, setGuardOffset] = useState(0);  // لتحريك الوحش للامام
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [dead, setDead] = useState(false);
   const [won, setWon] = useState(false);
   const [cracked, setCracked] = useState(false);
   const [removedOptions, setRemovedOptions] = useState<number[]>([]);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [playerRocket, setPlayerRocket] = useState(false);
-  const [guardRocket, setGuardRocket] = useState(false);
 
   const currentQ: Question | null = questions[qIndex % questions.length] || null;
 
@@ -48,52 +52,47 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
     if (idx === currentQ.correctIndex) {
       playSound('correct');
       setFeedback('correct');
-      setPlayerRocket(true);
-      setPlayerAnim('animate-attack-right');
-      const newGuardHp = Math.max(0, guardHp - state.battleSettings.playerAttack);
-      setGuardHp(newGuardHp);
-      const updated = { ...currentPlayer, gold: currentPlayer.gold + 10, xp: currentPlayer.xp + 15 };
-      updatePlayer(updated);
+      
+      // انيميشن الهجوم: اندفاع -> ضرب -> عودة
+      setPlayerOffset(150); // يركض للمنتصف
+      setTimeout(() => {
+        setPlayerAction('attack');
+        const newGuardHp = Math.max(0, guardHp - state.battleSettings.playerAttack);
+        setGuardHp(newGuardHp);
+        if (newGuardHp <= 0) { playSound('victory'); setWon(true); }
+      }, 300);
 
       setTimeout(() => {
-        setPlayerAnim('');
-        setPlayerRocket(false);
-        if (newGuardHp <= 0) {
-          playSound('victory');
-          setWon(true);
-        } else {
-          setFeedback(null);
-          setRemovedOptions([]);
-          setQIndex(q => q + 1);
-        }
-      }, 800);
+        setPlayerAction('idle');
+        setPlayerOffset(0); // يرجع لمكانه
+        setFeedback(null);
+        setRemovedOptions([]);
+        setQIndex(q => q + 1);
+      }, 1000);
+
+      updatePlayer({ ...currentPlayer, gold: currentPlayer.gold + 10, xp: currentPlayer.xp + 15 });
     } else {
       playSound('wrong');
       setFeedback('wrong');
-      setGuardRocket(true);
-      setGuardAnim('animate-attack-left');
-      const newPlayerHp = Math.max(0, playerHp - state.battleSettings.guardAttack);
-      setPlayerHp(newPlayerHp);
+
+      // الوحش يهجم
+      setGuardOffset(-150); // الوحش يندفع لليسار
+      setTimeout(() => {
+        setGuardAction('attack');
+        const newPlayerHp = Math.max(0, playerHp - state.battleSettings.guardAttack);
+        setPlayerHp(newPlayerHp);
+        if (newPlayerHp <= 0) { playSound('death'); setDead(true); setCracked(true); }
+      }, 300);
 
       setTimeout(() => {
-        setGuardAnim('');
-        setGuardRocket(false);
-        if (newPlayerHp <= 0) {
-          playSound('death');
-          setDead(true);
-          setCracked(true);
-          setTimeout(() => {
-            updatePlayer({ ...currentPlayer, hp: currentPlayer.maxHp });
-            onBack();
-          }, 3000);
-        } else {
-          setFeedback(null);
-          setRemovedOptions([]);
-          setQIndex(q => q + 1);
-        }
-      }, 800);
+        setGuardAction('idle');
+        setGuardOffset(0);
+        setFeedback(null);
+        setRemovedOptions([]);
+        setQIndex(q => q + 1);
+      }, 1000);
     }
-  }, [currentPlayer, currentQ, feedback, dead, won, guardHp, playerHp, state.battleSettings, updatePlayer, onBack]);
+  }, [currentPlayer, currentQ, feedback, dead, won, guardHp, playerHp, state.battleSettings, updatePlayer]);
 
   useEffect(() => {
     if (!currentQ?.hasTimer) { setTimeLeft(null); return; }
@@ -105,173 +104,115 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
     return () => clearInterval(t);
   }, [qIndex, currentQ?.hasTimer, handleAnswer]);
 
-  const useItem = (itemId: string) => {
-    if (!currentPlayer || !currentQ) return;
-    const item = state.shopItems.find(i => i.id === itemId);
-    if (!item || currentPlayer.gold < item.price) { playSound('wrong'); return; }
-    playSound('click');
-
-    if (itemId === 'remove2') {
-      const wrong = currentQ.options.map((_, i) => i).filter(i => i !== currentQ.correctIndex);
-      setRemovedOptions(wrong.sort(() => Math.random() - 0.5).slice(0, 2));
-    } else if (itemId === 'skip') {
-      setQIndex(q => q + 1);
-      setRemovedOptions([]);
-    } else if (itemId === 'hint') {
-      const wrong = currentQ.options.map((_, i) => i).filter(i => i !== currentQ.correctIndex);
-      setRemovedOptions([wrong[0]]);
-    } else if (itemId === 'heal') {
-      setPlayerHp(currentPlayer.maxHp);
-    }
-    updatePlayer({ ...currentPlayer, gold: currentPlayer.gold - item.price });
-  };
-
-  if (!currentPlayer) return null;
-
-  if (!currentQ) return (
-    <div className="min-h-screen flex items-center justify-center z-10 relative">
-      <div className="bg-card p-8 rounded-2xl border border-border text-center">
-        <p className="text-xl font-bold text-foreground mb-4">لا توجد أسئلة لهذه الجزيرة بعد!</p>
-        <button onClick={onBack} className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold">العودة</button>
-      </div>
-    </div>
-  );
+  if (!currentPlayer || !currentQ) return null;
 
   return (
-    <div className={`min-h-screen relative flex flex-col z-10 ${cracked ? 'animate-shake' : ''}`}>
-      {cracked && (
-        <div className="fixed inset-0 z-50 pointer-events-none animate-crack flex items-center justify-center">
-          <img src={monsterImg} alt="monster" className="w-40 h-40" />
-          <div className="absolute inset-0" style={{
-            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,0,0,0.1) 10px, rgba(255,0,0,0.1) 20px)',
-          }} />
-        </div>
-      )}
+    <div className={`min-h-screen relative flex flex-col z-10 overflow-hidden bg-[#0a0a0f] ${cracked ? 'animate-shake' : ''}`}>
+      
+      {/* خلفية ساحة القتال المطورة - Arena Style */}
+      <div className="absolute inset-0 z-0">
+         {/* سماء ليلية غامقة مع تدرج */}
+         <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e] to-[#0a0a0f]" />
+         {/* الضوء المسلط على الساحة */}
+         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[150%] h-[400px] bg-blue-500/10 blur-[120px] rounded-[100%]" />
+         {/* الأرضية ثلاثية الأبعاد */}
+         <div className="absolute bottom-0 left-0 w-full h-[30%] bg-[#161625] border-t-2 border-blue-500/20" 
+              style={{ transform: 'perspective(500px) rotateX(40deg)', transformOrigin: 'bottom' }}>
+            <div className="w-full h-full opacity-20" 
+                 style={{ backgroundImage: 'linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
+         </div>
+      </div>
 
+      <style>{`
+        @keyframes sprite-play { from { background-position: 0%; } to { background-position: 100%; } }
+        .sprite-box { width: 150px; height: 150px; background-size: auto 100%; image-rendering: pixelated; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .hero-idle { background-image: url(${heroIdle}); animation: sprite-play 0.8s steps(8) infinite; }
+        .hero-attack { background-image: url(${heroAttack}); animation: sprite-play 0.5s steps(6) forwards; }
+        .wizard-idle { background-image: url(${wizardIdle}); animation: sprite-play 0.8s steps(8) infinite; transform: scaleX(-1); }
+        .wizard-attack { background-image: url(${wizardAttack}); animation: sprite-play 0.5s steps(8) forwards; transform: scaleX(-1); }
+        
+        .hit-flash { animation: flash 0.2s ease-out; }
+        @keyframes flash { 0% { filter: brightness(1); } 50% { filter: brightness(3) sepia(1) saturate(10) hue-rotate(-50deg); } 100% { filter: brightness(1); } }
+      `}</style>
+
+      <div className="flex-1 flex flex-col items-center justify-center p-4 z-10">
+        
+        {/* منطقة الاشتباك */}
+        <div className="relative w-full max-w-4xl h-80 flex items-end justify-between px-10 mb-4">
+          
+          {/* البطل - يتحرك باستخدام playerOffset */}
+          <div className="flex flex-col items-center" style={{ transform: `translateX(${playerOffset}px)` }}>
+             <div className={`sprite-box ${playerAction === 'idle' ? 'hero-idle' : 'hero-attack'} ${feedback === 'wrong' && guardAction === 'attack' ? 'hit-flash' : ''}`} />
+             <div className="w-24 h-2 bg-gray-900 rounded-full border border-white/10 mt-2 overflow-hidden">
+                <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${(playerHp/currentPlayer.maxHp)*100}%` }} />
+             </div>
+             <p className="text-xs text-blue-300 font-bold mt-1 uppercase tracking-tighter">{currentPlayer.name}</p>
+          </div>
+
+          <div className="text-4xl opacity-20 font-black text-white italic">VS</div>
+
+          {/* الوحش - يتحرك باستخدام guardOffset */}
+          <div className="flex flex-col items-center" style={{ transform: `translateX(${guardOffset}px)` }}>
+             <div className={`sprite-box ${guardAction === 'idle' ? 'wizard-idle' : 'wizard-attack'} ${feedback === 'correct' ? 'hit-flash' : ''}`} />
+             <div className="w-24 h-2 bg-gray-900 rounded-full border border-white/10 mt-2 overflow-hidden">
+                <div className="h-full bg-red-500 transition-all duration-300" style={{ width: `${(guardHp/guardMaxHp)*100}%` }} />
+             </div>
+             <p className="text-xs text-red-400 font-bold mt-1 uppercase tracking-tighter">حارس {islandName}</p>
+          </div>
+        </div>
+
+        {/* صندوق الأسئلة الأنيق */}
+        <div className="w-full max-w-xl bg-[#1a1a2e]/80 backdrop-blur-xl border border-blue-500/20 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+          {timeLeft !== null && (
+            <div className="flex justify-center mb-6">
+              <div className="px-6 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-black">
+                {timeLeft}s
+              </div>
+            </div>
+          )}
+          
+          <h2 className="text-2xl font-bold text-white text-center mb-8 leading-relaxed drop-shadow-sm">
+            {currentQ.text}
+          </h2>
+          
+          <div className="grid grid-cols-1 gap-4">
+            {currentQ.options.map((opt, i) => {
+              if (removedOptions.includes(i)) return null;
+              const isCorrect = feedback && i === currentQ.correctIndex;
+              return (
+                <button
+                  key={i}
+                  onClick={() => handleAnswer(i)}
+                  disabled={!!feedback}
+                  className={`py-4 px-6 rounded-2xl border-2 font-bold text-lg transition-all duration-300 transform active:scale-95 ${
+                    isCorrect ? 'border-green-500 bg-green-500/20 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)]' :
+                    feedback === 'wrong' ? 'border-red-500/30 opacity-40' :
+                    'border-white/5 bg-white/5 text-gray-300 hover:bg-blue-500/10 hover:border-blue-500/50 hover:text-white'
+                  }`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <button onClick={onBack} className="mt-8 text-gray-500 hover:text-white transition-all text-xs font-bold uppercase tracking-widest">
+          ← الانسحاب من الساحة
+        </button>
+      </div>
+
+      {/* تأثير الفوز */}
       {won && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="text-center animate-scale-in">
-            <div className="text-8xl mb-4">🎉</div>
-            <h2 className="text-3xl font-black text-accent mb-2">نصر!</h2>
-            <p className="text-foreground mb-6">لقد هزمت حارس {islandName}!</p>
-            <button onClick={onVictory} className="px-8 py-3 bg-accent text-accent-foreground rounded-xl font-bold text-lg hover:scale-105 transition-all">
-              استمر →
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl animate-in fade-in duration-500">
+          <div className="text-center">
+            <h2 className="text-6xl font-black text-blue-500 mb-4 animate-bounce">نصر ساحق!</h2>
+            <button onClick={onVictory} className="px-10 py-4 bg-blue-600 text-white rounded-full font-black text-xl hover:bg-blue-500 transition-all shadow-[0_0_30px_rgba(37,99,235,0.5)]">
+              استلم الجائزة →
             </button>
           </div>
         </div>
       )}
-
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg">
-          {/* Battle arena */}
-          <div className="relative flex items-end justify-between mb-4 px-4">
-            {/* Player */}
-            <div className={`text-center ${playerAnim}`}>
-              <span className="text-6xl md:text-7xl block mb-2">{char?.emoji}</span>
-              <p className="text-xs font-bold text-foreground mb-1">{currentPlayer.name}</p>
-              <div className="w-24 h-2 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-space-green rounded-full transition-all" style={{ width: `${(playerHp / currentPlayer.maxHp) * 100}%` }} />
-              </div>
-              <span className="text-xs text-muted-foreground">{playerHp}/{currentPlayer.maxHp}</span>
-            </div>
-
-            {/* Player rocket flying toward guard */}
-            {playerRocket && (
-              <img
-                src={rocketImg}
-                alt="rocket"
-                className="absolute w-10 h-14 object-contain z-20"
-                style={{
-                  left: '20%',
-                  top: '30%',
-                  animation: 'rocket-fly-right 0.7s ease-in forwards',
-                  transform: 'rotate(90deg)',
-                }}
-              />
-            )}
-
-            <span className="text-2xl font-black text-accent mb-8">⚔️</span>
-
-            {/* Guard rocket flying toward player */}
-            {guardRocket && (
-              <img
-                src={rocketImg}
-                alt="rocket"
-                className="absolute w-10 h-14 object-contain z-20"
-                style={{
-                  right: '20%',
-                  top: '30%',
-                  animation: 'rocket-fly-left 0.7s ease-in forwards',
-                  transform: 'rotate(-90deg)',
-                }}
-              />
-            )}
-
-            {/* Guard (monster) */}
-            <div className={`text-center ${guardAnim}`}>
-              <img src={monsterImg} alt="guard" className="w-20 h-20 md:w-24 md:h-24 object-contain mx-auto mb-2" />
-              <p className="text-xs font-bold text-foreground mb-1">حارس {islandName}</p>
-              <div className="w-24 h-2 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-destructive rounded-full transition-all" style={{ width: `${(guardHp / guardMaxHp) * 100}%` }} />
-              </div>
-              <span className="text-xs text-muted-foreground">{guardHp}/{guardMaxHp}</span>
-            </div>
-          </div>
-
-          {/* Gold reward indicator */}
-          {feedback === 'correct' && (
-            <div className="flex items-center justify-center gap-2 mb-2 animate-gold-pop">
-              <img src={goldBagsImg} alt="gold" className="w-8 h-8 object-contain" />
-              <span className="text-accent font-bold text-sm">+10</span>
-            </div>
-          )}
-
-          <div className="bg-card border border-border rounded-2xl p-5 mt-4">
-            {timeLeft !== null && (
-              <div className="text-center mb-3">
-                <span className={`text-lg font-bold ${timeLeft <= 5 ? 'text-destructive' : 'text-accent'}`}>⏱ {timeLeft}</span>
-              </div>
-            )}
-            <p className="text-lg font-bold text-foreground mb-4 text-center leading-relaxed">{currentQ.text}</p>
-            <div className="grid grid-cols-1 gap-3">
-              {currentQ.options.map((opt, i) => {
-                if (removedOptions.includes(i)) return null;
-                const isCorrect = feedback && i === currentQ.correctIndex;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => handleAnswer(i)}
-                    disabled={!!feedback}
-                    className={`p-3 rounded-xl border-2 font-semibold text-sm transition-all ${
-                      isCorrect ? 'border-space-green bg-space-green/20 text-foreground' :
-                      feedback === 'wrong' ? 'border-border opacity-50' :
-                      'border-border hover:border-primary bg-secondary/50 text-foreground hover:bg-primary/10'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex gap-2 mt-4 justify-center flex-wrap">
-              {state.shopItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => useItem(item.id)}
-                  disabled={currentPlayer.gold < item.price || !!feedback}
-                  className="text-xs px-3 py-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-30 transition-all"
-                  title={`${item.name} (${item.price})`}
-                >
-                  {item.emoji} {item.price}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button onClick={onBack} className="mt-4 text-sm text-muted-foreground hover:text-foreground transition-all block mx-auto">
-            ← العودة
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
