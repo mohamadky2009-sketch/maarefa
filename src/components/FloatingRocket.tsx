@@ -40,7 +40,7 @@ const FloatingRocket = () => {
   return (
     <div
       ref={ref}
-      className="fixed z-0 pointer-events-none opacity-50"
+      className="fixed z-0 pointer-events-none"
       style={{ left: '80%', top: '70%' }}
     >
       <img src={rocketImg} alt="rocket" className="w-14 h-20 md:w-18 md:h-24 object-contain drop-shadow-lg" />

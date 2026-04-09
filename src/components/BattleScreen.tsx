@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { CHARACTERS, GUARDS, ISLANDS, playSound, Question } from '@/lib/gameState';
+import { CHARACTERS, ISLANDS, playSound, Question } from '@/lib/gameState';
 import { useGame } from '@/context/GameContext';
+import monsterImg from '@/assets/monster.png';
+import goldBagsImg from '@/assets/gold-bags.png';
+import rocketImg from '@/assets/rocket.png';
 
 interface Props {
   planetId: number;
@@ -13,7 +16,6 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
   const { state, currentPlayer, updatePlayer } = useGame();
 
   const char = CHARACTERS.find(c => c.id === currentPlayer?.characterId);
-  const guardEmoji = GUARDS[islandId % GUARDS.length];
   const islandName = ISLANDS[islandId]?.name || 'جزيرة';
 
   const questions = useMemo(() => {
@@ -35,6 +37,8 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
   const [cracked, setCracked] = useState(false);
   const [removedOptions, setRemovedOptions] = useState<number[]>([]);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [playerRocket, setPlayerRocket] = useState(false);
+  const [guardRocket, setGuardRocket] = useState(false);
 
   const currentQ: Question | null = questions[qIndex % questions.length] || null;
 
@@ -44,6 +48,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
     if (idx === currentQ.correctIndex) {
       playSound('correct');
       setFeedback('correct');
+      setPlayerRocket(true);
       setPlayerAnim('animate-attack-right');
       const newGuardHp = Math.max(0, guardHp - state.battleSettings.playerAttack);
       setGuardHp(newGuardHp);
@@ -52,6 +57,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
 
       setTimeout(() => {
         setPlayerAnim('');
+        setPlayerRocket(false);
         if (newGuardHp <= 0) {
           playSound('victory');
           setWon(true);
@@ -64,12 +70,14 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
     } else {
       playSound('wrong');
       setFeedback('wrong');
+      setGuardRocket(true);
       setGuardAnim('animate-attack-left');
       const newPlayerHp = Math.max(0, playerHp - state.battleSettings.guardAttack);
       setPlayerHp(newPlayerHp);
 
       setTimeout(() => {
         setGuardAnim('');
+        setGuardRocket(false);
         if (newPlayerHp <= 0) {
           playSound('death');
           setDead(true);
@@ -133,7 +141,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
     <div className={`min-h-screen relative flex flex-col z-10 ${cracked ? 'animate-shake' : ''}`}>
       {cracked && (
         <div className="fixed inset-0 z-50 pointer-events-none animate-crack flex items-center justify-center">
-          <div className="text-9xl">{guardEmoji}</div>
+          <img src={monsterImg} alt="monster" className="w-40 h-40" />
           <div className="absolute inset-0" style={{
             background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,0,0,0.1) 10px, rgba(255,0,0,0.1) 20px)',
           }} />
@@ -155,7 +163,9 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
 
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-lg">
-          <div className="flex items-end justify-between mb-4 px-4">
+          {/* Battle arena */}
+          <div className="relative flex items-end justify-between mb-4 px-4">
+            {/* Player */}
             <div className={`text-center ${playerAnim}`}>
               <span className="text-6xl md:text-7xl block mb-2">{char?.emoji}</span>
               <p className="text-xs font-bold text-foreground mb-1">{currentPlayer.name}</p>
@@ -164,9 +174,42 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
               </div>
               <span className="text-xs text-muted-foreground">{playerHp}/{currentPlayer.maxHp}</span>
             </div>
+
+            {/* Player rocket flying toward guard */}
+            {playerRocket && (
+              <img
+                src={rocketImg}
+                alt="rocket"
+                className="absolute w-10 h-14 object-contain z-20"
+                style={{
+                  left: '20%',
+                  top: '30%',
+                  animation: 'rocket-fly-right 0.7s ease-in forwards',
+                  transform: 'rotate(90deg)',
+                }}
+              />
+            )}
+
             <span className="text-2xl font-black text-accent mb-8">⚔️</span>
+
+            {/* Guard rocket flying toward player */}
+            {guardRocket && (
+              <img
+                src={rocketImg}
+                alt="rocket"
+                className="absolute w-10 h-14 object-contain z-20"
+                style={{
+                  right: '20%',
+                  top: '30%',
+                  animation: 'rocket-fly-left 0.7s ease-in forwards',
+                  transform: 'rotate(-90deg)',
+                }}
+              />
+            )}
+
+            {/* Guard (monster) */}
             <div className={`text-center ${guardAnim}`}>
-              <span className="text-6xl md:text-7xl block mb-2">{guardEmoji}</span>
+              <img src={monsterImg} alt="guard" className="w-20 h-20 md:w-24 md:h-24 object-contain mx-auto mb-2" />
               <p className="text-xs font-bold text-foreground mb-1">حارس {islandName}</p>
               <div className="w-24 h-2 bg-secondary rounded-full overflow-hidden">
                 <div className="h-full bg-destructive rounded-full transition-all" style={{ width: `${(guardHp / guardMaxHp) * 100}%` }} />
@@ -174,6 +217,14 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
               <span className="text-xs text-muted-foreground">{guardHp}/{guardMaxHp}</span>
             </div>
           </div>
+
+          {/* Gold reward indicator */}
+          {feedback === 'correct' && (
+            <div className="flex items-center justify-center gap-2 mb-2 animate-gold-pop">
+              <img src={goldBagsImg} alt="gold" className="w-8 h-8 object-contain" />
+              <span className="text-accent font-bold text-sm">+10</span>
+            </div>
+          )}
 
           <div className="bg-card border border-border rounded-2xl p-5 mt-4">
             {timeLeft !== null && (
@@ -209,7 +260,7 @@ const BattleScreen = ({ planetId, islandId, onBack, onVictory }: Props) => {
                   onClick={() => useItem(item.id)}
                   disabled={currentPlayer.gold < item.price || !!feedback}
                   className="text-xs px-3 py-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-30 transition-all"
-                  title={`${item.name} (${item.price} 🪙)`}
+                  title={`${item.name} (${item.price})`}
                 >
                   {item.emoji} {item.price}
                 </button>
