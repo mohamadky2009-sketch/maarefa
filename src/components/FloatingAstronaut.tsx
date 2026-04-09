@@ -3,8 +3,9 @@ import astronautImg from '@/assets/astronaut.png';
 
 const FloatingAstronaut = () => {
   const ref = useRef<HTMLDivElement>(null);
-  const posRef = useRef({ x: 50, y: 30 });
-  const velRef = useRef({ x: 0.3, y: 0.2 });
+  // يبدأ من منتصف الشاشة
+  const posRef = useRef({ x: 50, y: 50 });
+  const velRef = useRef({ x: 0.5, y: 0.4 });
 
   useEffect(() => {
     let raf: number;
@@ -15,17 +16,21 @@ const FloatingAstronaut = () => {
       pos.x += vel.x;
       pos.y += vel.y;
 
-      if (pos.x > 85 || pos.x < 5) vel.x *= -1;
-      if (pos.y > 80 || pos.y < 5) vel.y *= -1;
+      // يخليه يسبح بكل مساحة الشاشة (من 0 لـ 90%)
+      if (pos.x > 90 || pos.x < 0) vel.x *= -1;
+      if (pos.y > 90 || pos.y < 0) vel.y *= -1;
 
-      vel.x += (Math.random() - 0.5) * 0.02;
-      vel.y += (Math.random() - 0.5) * 0.02;
+      // حركة عشوائية أقوى عشان يبين كأنه طايف بالفضاء
+      vel.x += (Math.random() - 0.5) * 0.04;
+      vel.y += (Math.random() - 0.5) * 0.04;
 
-      vel.x = Math.max(-0.4, Math.min(0.4, vel.x));
-      vel.y = Math.max(-0.3, Math.min(0.3, vel.y));
+      // تحديد سرعة الطفو عشان ما يطير بسرعة كبيرة
+      vel.x = Math.max(-0.5, Math.min(0.5, vel.x));
+      vel.y = Math.max(-0.4, Math.min(0.4, vel.y));
 
       if (ref.current) {
-        const rotation = vel.x * 15;
+        // دوران بيعتمد على اتجاه حركته
+        const rotation = vel.x * 20 + vel.y * 10;
         ref.current.style.left = `${pos.x}%`;
         ref.current.style.top = `${pos.y}%`;
         ref.current.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
@@ -40,10 +45,14 @@ const FloatingAstronaut = () => {
   return (
     <div
       ref={ref}
-      className="fixed z-0 pointer-events-none"
-      style={{ left: '50%', top: '30%' }}
+      className="fixed z-20 pointer-events-none"
+      style={{ left: '50%', top: '50%' }}
     >
-      <img src={astronautImg} alt="astronaut" className="w-24 h-28 md:w-32 md:h-36 object-contain drop-shadow-lg" />
+      <img 
+        src={astronautImg} 
+        alt="astronaut" 
+        className="w-24 h-28 md:w-32 md:h-36 object-contain drop-shadow-2xl" 
+      />
     </div>
   );
 };
