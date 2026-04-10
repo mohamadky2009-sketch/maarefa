@@ -10,6 +10,7 @@ import { ISLANDS, PLANETS } from '@/lib/gameState';
 
 type Screen = 
   | { type: 'entry' }
+  | { type: 'scroll' }
   | { type: 'admin' }
   | { type: 'planets' }
   | { type: 'islands'; planetId: number }
@@ -71,11 +72,20 @@ const GameApp = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-black text-white">
-      {/* النجوم تظهر فقط في شاشة الدخول */}
-      {screen.type === 'entry' && <StarField />}
+      {(screen.type === 'entry' || screen.type === 'scroll') && <StarField />}
       
       {screen.type === 'entry' && (
-        <EntryScreen onAdmin={() => setScreen({ type: 'admin' })} />
+        <EntryScreen
+          onAdmin={() => setScreen({ type: 'admin' })}
+        />
+      )}
+
+      {screen.type === 'scroll' && (
+        <EntryScreen
+          loggedIn
+          onAdmin={() => setScreen({ type: 'admin' })}
+          onPlay={() => setScreen({ type: 'planets' })}
+        />
       )}
 
       {screen.type === 'admin' && (
@@ -90,7 +100,7 @@ const GameApp = () => {
         <IslandMap
           planetId={screen.planetId}
           onSelectIsland={(id) => setScreen({ type: 'battle', planetId: screen.planetId, islandId: id })}
-          onBack={() => setScreen({ type: 'planets' })}
+          onBack={() => setScreen({ type: 'scroll' })}
         />
       )}
 
@@ -100,7 +110,6 @@ const GameApp = () => {
           islandId={screen.islandId}
           onBack={() => setScreen({ type: 'islands', planetId: screen.planetId })}
           onVictory={() => handleVictory(screen.planetId, screen.islandId)}
-          // إضافة onDefeat لحل المشكلة (يرجع اللاعب للخريطة عند الخسارة)
           onDefeat={() => {
             setScreen({ type: 'islands', planetId: screen.planetId });
           }}

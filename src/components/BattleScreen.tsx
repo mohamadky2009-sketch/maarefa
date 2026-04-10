@@ -461,13 +461,13 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   };
 
   // ── Position → CSS ─────────────────────────────────────────────────────────
-  const CHARGE_DIST = 'clamp(110px,26vw,360px)';
+  const CHARGE_DIST = 'clamp(80px,22vw,320px)';
   const heroTransX = (heroPos === 'charging' || heroPos === 'atEnemy') ? `translateX(${CHARGE_DIST})` : 'translateX(0)';
   const heroMoveDur = heroPos === 'charging' ? CHARGE_MS : heroPos === 'returning' ? RETURN_MS : 0;
   const monTransX  = (monsterPos === 'charging' || monsterPos === 'atEnemy') ? `translateX(-${CHARGE_DIST})` : 'translateX(0)';
   const monMoveDur = monsterPos === 'charging' ? CHARGE_MS : monsterPos === 'returning' ? RETURN_MS : 0;
 
-  // HP colors (shift from cyan → amber → red as HP drops)
+  // HP colors
   const heroPct      = heroHP / 100;
   const monPct       = monsterHP / 100;
   const heroBarColor = heroPct > 0.5 ? '#22d3ee' : heroPct > 0.25 ? '#f59e0b' : '#ef4444';
@@ -475,11 +475,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   const accuracy = correctAnswers + wrongAnswers > 0
     ? Math.round(correctAnswers / (correctAnswers + wrongAnswers) * 100) : 0;
-
-  // Responsive scale factor: sprites render at DISPLAY_H=256px internally,
-  // CSS scale enlarges them on bigger screens.
-  // We use a clamp so they scale from 0.9× on mobile to 1.4× on desktop.
-  const spriteScaleCss = 'clamp(0.9, 1.1 + 0.3*(100vw - 768px)/512, 1.4)';
 
   return (
     <div dir="ltr"
@@ -489,7 +484,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       {/* Background */}
       <div className="absolute inset-0 bg-center bg-cover"
         style={{ backgroundImage:`url('${bgUrl}')`, animation:'bsBgZoom 24s ease-in-out infinite alternate', transform:'scale(1.12)' }} />
-      <div className="absolute inset-0 bg-black/55" />
+      <div className="absolute inset-0 bg-black/60" />
 
       {/* Vignette */}
       <div className="absolute inset-0 pointer-events-none transition-all duration-500"
@@ -502,84 +497,111 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       )}
 
       {/* ════ HP BARS ═════════════════════════════════════════════════════════ */}
-      <div className="relative z-20 w-full max-w-6xl flex items-center gap-3 p-3 md:p-5">
+      <div className="relative z-20 w-full max-w-6xl flex items-center gap-2 px-2 pt-2 pb-1 md:gap-4 md:px-5 md:pt-4 md:pb-2">
 
         {/* Hero bar */}
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="font-black text-xs md:text-sm truncate"
-              style={{ color:'#67e8f9', textShadow:'0 0 12px rgba(6,182,212,1)' }}>{currentPlayer.name}</span>
-            <span className="font-mono text-xs tabular-nums shrink-0 ml-2" style={{ color: heroBarColor }}>
+          <div className="flex justify-between items-center mb-1">
+            <span className="font-black text-[10px] sm:text-xs md:text-sm truncate"
+              style={{ color:'#67e8f9', textShadow:'0 0 10px rgba(6,182,212,1)' }}>
+              {currentPlayer.name}
+            </span>
+            <span className="font-mono text-[10px] sm:text-xs tabular-nums shrink-0 ml-1" style={{ color: heroBarColor }}>
               {heroHP}<span className="text-white/30">/100</span>
             </span>
           </div>
-          <div className="relative h-5 md:h-6 bg-black/90 rounded-full overflow-hidden"
+          {/* Metallic bar track */}
+          <div className="relative h-4 sm:h-5 rounded-full overflow-hidden"
             style={{
-              border:`1px solid ${heroBarColor}55`,
-              boxShadow:`0 0 18px ${heroBarColor}44`,
+              background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 40%, #111 100%)',
+              border: `1px solid ${heroBarColor}66`,
+              boxShadow: `0 0 14px ${heroBarColor}44, inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.5)`,
               animation: heroHP < 30 ? 'bsCritPulse 0.7s ease-in-out infinite' : 'none',
             }}>
+            {/* Ghost layer */}
             <div className="absolute inset-y-0 left-0 rounded-full"
-              style={{ width:`${heroHPGhost}%`, background:'rgba(255,255,255,0.17)', transition:'width 900ms cubic-bezier(0.4,0,0.2,1)' }} />
+              style={{
+                width:`${heroHPGhost}%`,
+                background: 'rgba(255,255,255,0.14)',
+                transition:'width 900ms cubic-bezier(0.4,0,0.2,1)',
+              }} />
+            {/* Live bar */}
             <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
               style={{
                 width:`${heroHP}%`,
-                background:`linear-gradient(90deg,rgba(14,116,144,.9),${heroBarColor},rgba(224,255,255,.9))`,
-                boxShadow:`0 0 18px ${heroBarColor},inset 0 1px 0 rgba(255,255,255,.32)`,
+                background:`linear-gradient(90deg, rgba(14,116,144,0.9) 0%, ${heroBarColor} 60%, rgba(207,250,254,0.95) 100%)`,
+                boxShadow:`0 0 14px ${heroBarColor}, 0 0 6px ${heroBarColor}88, inset 0 1px 0 rgba(255,255,255,0.35)`,
               }} />
+            {/* Metallic sheen scan */}
             <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
-              <div className="absolute inset-y-0 w-10 bg-white/22 blur-sm" style={{ animation:'bsScan 2.5s linear infinite' }} />
+              <div className="absolute inset-y-0 w-8 bg-white/20 blur-sm skew-x-12" style={{ animation:'bsScan 2.5s linear infinite' }} />
             </div>
+            {/* Top highlight */}
             <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-full pointer-events-none"
-              style={{ background:'linear-gradient(to bottom,rgba(255,255,255,.2),transparent)' }} />
+              style={{ background:'linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)' }} />
+            {/* Bottom shadow */}
+            <div className="absolute inset-x-0 bottom-0 h-1/3 rounded-b-full pointer-events-none"
+              style={{ background:'linear-gradient(to top, rgba(0,0,0,0.4), transparent)' }} />
           </div>
         </div>
 
-        <span className="text-xl font-black shrink-0 px-1 select-none"
+        <span className="text-base sm:text-xl font-black shrink-0 px-0.5 select-none"
           style={{ textShadow:'0 0 20px rgba(255,255,255,.7)' }}>⚔️</span>
 
         {/* Monster bar */}
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="font-mono text-xs tabular-nums shrink-0 mr-2" style={{ color: monBarColor }}>
+          <div className="flex justify-between items-center mb-1">
+            <span className="font-mono text-[10px] sm:text-xs tabular-nums shrink-0 mr-1" style={{ color: monBarColor }}>
               {monsterHP}<span className="text-white/30">/100</span>
             </span>
-            <span className="font-black text-xs md:text-sm truncate"
-              style={{ color:'#fca5a5', textShadow:'0 0 12px rgba(239,68,68,1)' }}>{monster.name}</span>
+            <span className="font-black text-[10px] sm:text-xs md:text-sm truncate text-right"
+              style={{ color:'#fca5a5', textShadow:'0 0 10px rgba(239,68,68,1)' }}>
+              {monster.name}
+            </span>
           </div>
-          <div className="relative h-5 md:h-6 bg-black/90 rounded-full overflow-hidden"
+          <div className="relative h-4 sm:h-5 rounded-full overflow-hidden"
             style={{
-              border:`1px solid ${monBarColor}55`,
-              boxShadow:`0 0 18px ${monBarColor}44`,
+              background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 40%, #111 100%)',
+              border: `1px solid ${monBarColor}66`,
+              boxShadow: `0 0 14px ${monBarColor}44, inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.5)`,
               animation: monsterHP < 30 ? 'bsCritPulse 0.7s ease-in-out infinite' : 'none',
             }}>
+            {/* Ghost layer */}
             <div className="absolute inset-y-0 right-0 rounded-full"
-              style={{ width:`${monsterHPGhost}%`, background:'rgba(255,255,255,0.17)', transition:'width 900ms cubic-bezier(0.4,0,0.2,1)' }} />
+              style={{
+                width:`${monsterHPGhost}%`,
+                background: 'rgba(255,255,255,0.14)',
+                transition:'width 900ms cubic-bezier(0.4,0,0.2,1)',
+              }} />
+            {/* Live bar */}
             <div className="absolute inset-y-0 right-0 rounded-full transition-all duration-300"
               style={{
                 width:`${monsterHP}%`,
-                background:`linear-gradient(270deg,rgba(127,29,29,.9),${monBarColor},rgba(255,224,200,.9))`,
-                boxShadow:`0 0 18px ${monBarColor},inset 0 1px 0 rgba(255,255,255,.32)`,
+                background:`linear-gradient(270deg, rgba(127,29,29,0.9) 0%, ${monBarColor} 60%, rgba(255,224,200,0.95) 100%)`,
+                boxShadow:`0 0 14px ${monBarColor}, 0 0 6px ${monBarColor}88, inset 0 1px 0 rgba(255,255,255,0.35)`,
               }} />
+            {/* Metallic sheen */}
             <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none" style={{ transform:'scaleX(-1)' }}>
-              <div className="absolute inset-y-0 w-10 bg-white/22 blur-sm" style={{ animation:'bsScan 2.9s linear infinite' }} />
+              <div className="absolute inset-y-0 w-8 bg-white/20 blur-sm skew-x-12" style={{ animation:'bsScan 2.9s linear infinite' }} />
             </div>
             <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-full pointer-events-none"
-              style={{ background:'linear-gradient(to bottom,rgba(255,255,255,.2),transparent)' }} />
+              style={{ background:'linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)' }} />
+            <div className="absolute inset-x-0 bottom-0 h-1/3 rounded-b-full pointer-events-none"
+              style={{ background:'linear-gradient(to top, rgba(0,0,0,0.4), transparent)' }} />
           </div>
         </div>
       </div>
 
       {/* ════ BATTLE ARENA ════════════════════════════════════════════════════ */}
       <div
-        className="relative z-10 w-full max-w-7xl h-[44vh] flex items-end justify-between px-4 sm:px-10 md:px-20 pb-4 transition-transform duration-500"
+        className="relative z-10 w-full max-w-7xl h-[36vh] sm:h-[40vh] md:h-[44vh] flex items-end justify-between px-3 sm:px-8 md:px-20 pb-3 transition-transform duration-500"
         style={{ transform: cameraZoom ? 'scale(1.07)' : 'scale(1)', transformOrigin:'center bottom' }}
       >
         {/* Floating damage numbers */}
         {floatNums.map(fn => (
           <div key={fn.id} className="absolute pointer-events-none z-30 font-black select-none"
             style={{
-              fontSize: '1.75rem',
+              fontSize: 'clamp(1.1rem, 4vw, 1.75rem)',
               left:     fn.target === 'hero' ? '15%' : '70%',
               bottom:   '58%',
               transform:'translateX(-50%)',
@@ -621,10 +643,10 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           {showImpact && (
             <div className="absolute inset-0 z-20 pointer-events-none">
               <div className="absolute inset-0 rounded-xl bg-white/72" style={{ animation:'bsFlash 0.22s ease forwards' }} />
-              <span className="absolute top-[12%] left-[4%]   text-4xl" style={{ animation:'bsPop 0.35s ease forwards' }}>💥</span>
-              <span className="absolute top-[35%] right-[4%]  text-2xl" style={{ animation:'bsPop 0.35s 0.06s ease both', opacity:0 }}>⭐</span>
-              <span className="absolute bottom-[22%] left-[30%] text-xl" style={{ animation:'bsPop 0.35s 0.11s ease both', opacity:0 }}>✨</span>
-              <span className="absolute top-[55%] left-[15%] text-lg"  style={{ animation:'bsPop 0.3s 0.17s ease both', opacity:0 }}>⚡</span>
+              <span className="absolute top-[12%] left-[4%]   text-3xl sm:text-4xl" style={{ animation:'bsPop 0.35s ease forwards' }}>💥</span>
+              <span className="absolute top-[35%] right-[4%]  text-xl sm:text-2xl"  style={{ animation:'bsPop 0.35s 0.06s ease both', opacity:0 }}>⭐</span>
+              <span className="absolute bottom-[22%] left-[30%] text-base sm:text-xl" style={{ animation:'bsPop 0.35s 0.11s ease both', opacity:0 }}>✨</span>
+              <span className="absolute top-[55%] left-[15%] text-sm sm:text-lg"  style={{ animation:'bsPop 0.3s 0.17s ease both', opacity:0 }}>⚡</span>
             </div>
           )}
           <div style={{
@@ -655,68 +677,113 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
       {/* Combo display */}
       {showCombo && combo >= 2 && (
-        <div className="fixed top-[18%] left-1/2 z-50 pointer-events-none text-center"
+        <div className="fixed top-[16%] left-1/2 z-50 pointer-events-none text-center"
           style={{ transform:'translateX(-50%)', animation:'bsComboIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards' }}>
-          <div className="text-4xl font-black"
+          <div className="text-3xl sm:text-4xl font-black"
             style={{ color: combo >= 5 ? '#f59e0b':'#22d3ee', textShadow:`0 0 30px ${combo>=5?'#f59e0b':'#22d3ee'}` }}>
             {combo}× COMBO!
           </div>
-          {combo >= 5 && <div className="text-base font-bold text-yellow-300 mt-1">🔥 رائع!</div>}
+          {combo >= 5 && <div className="text-sm font-bold text-yellow-300 mt-1">🔥 رائع!</div>}
         </div>
       )}
 
-      {/* ════ QUESTION PANEL ══════════════════════════════════════════════════ */}
+      {/* ════ QUESTION PANEL — Glassmorphism Futuristic ══════════════════════ */}
       <div className="relative z-20 w-full max-w-5xl mx-auto px-2 pb-2">
-        <div className="rounded-3xl border overflow-hidden"
+        {/* Outer glow frame */}
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden"
           style={{
-            background:'linear-gradient(135deg,rgba(6,182,212,0.08) 0%,rgba(0,0,0,0.9) 50%,rgba(6,182,212,0.04) 100%)',
-            backdropFilter:'blur(32px)', WebkitBackdropFilter:'blur(32px)',
-            borderColor:'rgba(6,182,212,0.22)',
-            boxShadow:'0 0 60px rgba(6,182,212,0.1),0 24px 80px rgba(0,0,0,0.88),inset 0 1px 0 rgba(255,255,255,0.07)',
+            background: 'linear-gradient(135deg, rgba(6,182,212,0.11) 0%, rgba(0,0,0,0.92) 45%, rgba(6,182,212,0.07) 100%)',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+            border: '1px solid rgba(6,182,212,0.28)',
+            boxShadow: [
+              '0 0 0 1px rgba(6,182,212,0.08)',
+              '0 0 40px rgba(6,182,212,0.14)',
+              '0 0 80px rgba(6,182,212,0.06)',
+              '0 24px 60px rgba(0,0,0,0.9)',
+              'inset 0 1px 0 rgba(255,255,255,0.08)',
+              'inset 0 0 40px rgba(6,182,212,0.04)',
+            ].join(','),
           }}>
-          <div className="h-px" style={{ background:'linear-gradient(90deg,transparent,rgba(6,182,212,0.85),transparent)' }} />
-          <div className="p-5 md:p-8">
-            <h3 className="text-center text-sm sm:text-base md:text-xl font-bold mb-5 text-white leading-relaxed" dir="rtl"
-              style={{ textShadow:'0 0 24px rgba(6,182,212,0.25)' }}>
+
+          {/* Top cyan line — animated pulse */}
+          <div className="h-px w-full"
+            style={{ background:'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.9) 30%, rgba(34,211,238,1) 50%, rgba(6,182,212,0.9) 70%, transparent 100%)', animation:'bsGlowPulse 2s ease-in-out infinite' }} />
+
+          {/* Corner accents */}
+          <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-cyan-400/60 rounded-tl-xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-cyan-400/60 rounded-tr-xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-cyan-400/40 rounded-bl-xl pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-cyan-400/40 rounded-br-xl pointer-events-none" />
+
+          <div className="p-3 sm:p-5 md:p-7">
+            {/* Question text */}
+            <h3 className="text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold mb-3 sm:mb-4 text-white leading-relaxed" dir="rtl"
+              style={{ textShadow:'0 0 20px rgba(6,182,212,0.3)' }}>
               {island.question.text}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+            {/* Options grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               {island.question.options.map((opt, i) => (
                 <button key={i} onClick={() => handleAnswer(i)} disabled={isLocked} dir="rtl"
-                  className="group relative p-4 md:p-5 rounded-2xl text-sm md:text-base font-bold text-right border transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 overflow-hidden"
-                  style={{ background:'rgba(255,255,255,0.04)', borderColor:'rgba(255,255,255,0.08)' }}>
-                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    style={{ background:'linear-gradient(135deg,rgba(6,182,212,0.16),rgba(6,182,212,0.03))' }} />
-                  <div className="absolute inset-0 rounded-2xl border border-transparent group-hover:border-cyan-400/65 transition-all duration-200" />
-                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    style={{ boxShadow:'inset 0 0 30px rgba(6,182,212,0.18),0 0 22px rgba(6,182,212,0.14)' }} />
-                  <div className="absolute left-0 top-2.5 bottom-2.5 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    style={{ background:'rgba(6,182,212,0.9)' }} />
-                  <div className="relative flex items-center gap-3">
-                    <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 border border-white/10 group-hover:border-cyan-400/55 transition-all duration-200"
-                      style={{ background:'rgba(255,255,255,0.06)', color:'rgba(6,182,212,0.85)' }}>
+                  className="group relative rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold text-right transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 overflow-hidden"
+                  style={{
+                    padding: 'clamp(10px, 3vw, 18px) clamp(12px, 3vw, 20px)',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(6,182,212,0.12)',
+                  }}>
+
+                  {/* Hover bg */}
+                  <div className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    style={{ background:'linear-gradient(135deg, rgba(6,182,212,0.18), rgba(6,182,212,0.04))' }} />
+                  {/* Hover border glow */}
+                  <div className="absolute inset-0 rounded-xl sm:rounded-2xl transition-all duration-200"
+                    style={{ boxShadow:'0 0 0 0px rgba(6,182,212,0)' }}
+                    onMouseEnter={e => (e.currentTarget.style.boxShadow = 'inset 0 0 24px rgba(6,182,212,0.18), 0 0 16px rgba(6,182,212,0.12), 0 0 0 1px rgba(6,182,212,0.55)')}
+                    onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0px rgba(6,182,212,0)')} />
+
+                  {/* Left accent bar */}
+                  <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    style={{ background:'linear-gradient(180deg, transparent, rgba(6,182,212,0.95), transparent)' }} />
+
+                  {/* Scan shimmer on hover */}
+                  <div className="absolute inset-0 overflow-hidden rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <div className="absolute inset-y-0 w-12 bg-white/10 blur-sm skew-x-12" style={{ animation:'bsScan 1.4s linear infinite' }} />
+                  </div>
+
+                  <div className="relative flex items-center gap-2 sm:gap-3">
+                    <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 transition-all duration-200"
+                      style={{
+                        background: 'rgba(6,182,212,0.1)',
+                        border: '1px solid rgba(6,182,212,0.25)',
+                        color: 'rgba(6,182,212,0.9)',
+                      }}>
                       {i + 1}
                     </span>
-                    <span className="text-white/90 group-hover:text-cyan-50 transition-colors duration-200">{opt}</span>
+                    <span className="text-white/85 group-hover:text-cyan-50 transition-colors duration-200 leading-snug">{opt}</span>
                   </div>
                 </button>
               ))}
             </div>
           </div>
-          <div className="h-px" style={{ background:'linear-gradient(90deg,transparent,rgba(6,182,212,0.4),transparent)' }} />
+
+          {/* Bottom cyan line */}
+          <div className="h-px w-full"
+            style={{ background:'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.6) 40%, rgba(6,182,212,0.6) 60%, transparent 100%)' }} />
         </div>
       </div>
 
-      {/* Back */}
+      {/* Back button */}
       <button onClick={onBack}
-        className="absolute top-3 left-3 z-30 px-4 py-2 bg-black/60 hover:bg-red-900/80 rounded-full text-white font-bold border border-white/20 text-xs md:text-sm backdrop-blur-sm transition-all">
+        className="absolute top-2 left-2 z-30 px-3 py-1.5 bg-black/60 hover:bg-red-900/80 rounded-full text-white font-bold border border-white/20 text-[10px] sm:text-xs md:text-sm backdrop-blur-sm transition-all">
         🏳️ انسحاب
       </button>
 
       {/* Answer flash */}
       {showResult !== 'none' && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="text-7xl md:text-9xl font-black drop-shadow-2xl"
+          <div className="text-6xl sm:text-8xl font-black drop-shadow-2xl"
             style={{ animation:'bsPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards', color: showResult==='correct'?'#4ade80':'#f87171' }}>
             {showResult === 'correct' ? '✅' : '❌'}
           </div>
@@ -738,7 +805,8 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
       {/* CSS custom property for sprite scale + keyframes */}
       <style>{`
-        :root { --sprite-scale: 1; }
+        :root { --sprite-scale: 0.85; }
+        @media (min-width:  480px) { :root { --sprite-scale: 0.95; } }
         @media (min-width:  640px) { :root { --sprite-scale: 1.05; } }
         @media (min-width:  768px) { :root { --sprite-scale: 1.15; } }
         @media (min-width: 1024px) { :root { --sprite-scale: 1.35; } }
@@ -764,12 +832,12 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
         }
         @keyframes bsFlash    { 0%{opacity:0.8;} 100%{opacity:0;} }
         @keyframes bsWhiteFlash { 0%{opacity:0.5;} 100%{opacity:0;} }
-        @keyframes bsScan     { 0%{left:-8%;} 100%{left:108%;} }
+        @keyframes bsScan     { 0%{left:-12%;} 100%{left:112%;} }
         @keyframes bsCritPulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
         @keyframes bsFloatDmg {
           0%   { transform:translateX(-50%) translateY(0)     scale(1.2); opacity:1; }
-          30%  { transform:translateX(-50%) translateY(-28px)  scale(1);   opacity:1; }
-          100% { transform:translateX(-50%) translateY(-85px)  scale(0.7); opacity:0; }
+          30%  { transform:translateX(-50%) translateY(-24px)  scale(1);   opacity:1; }
+          100% { transform:translateX(-50%) translateY(-70px)  scale(0.7); opacity:0; }
         }
         @keyframes bsComboIn {
           0%   { opacity:0; transform:translateX(-50%) scale(0.5); }
@@ -787,13 +855,17 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
         }
         @keyframes bsGlowPulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
         @keyframes bsFloat     { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+        @keyframes bsStatIn {
+          0%   { opacity:0; transform:translateY(10px); }
+          100% { opacity:1; transform:translateY(0); }
+        }
       `}</style>
     </div>
   );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Epic Victory / Defeat overlay
+// Epic Victory / Defeat overlay — Full-screen, mobile-optimized
 // ─────────────────────────────────────────────────────────────────────────────
 interface EpicModalProps {
   type: 'victory'|'defeat'; monsterName: string;
@@ -801,75 +873,148 @@ interface EpicModalProps {
   damageDealt: number; damageReceived: number;
   accuracy: number; onAction: () => void;
 }
+
 const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageReceived, accuracy, onAction }: EpicModalProps) => {
-  const isV = type === 'victory';
+  const isV   = type === 'victory';
   const accent = isV ? '#eab308' : '#ef4444';
   const rgb    = isV ? '234,179,8' : '239,68,68';
-  const parts  = isV ? ['⭐','✨','🌟','💫','🏆','⭐','✨','🌟'] : ['💀','🩸','☠️','💀','🩸','☠️','💀','🩸'];
+  const parts  = isV
+    ? ['⭐','✨','🌟','💫','🏆','⭐','✨','🌟','💛','✦','✧','💥']
+    : ['💀','🩸','☠️','💀','🩸','☠️','💀','🩸','💣','⚡','🔥','☠️'];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
-      style={{ background:`radial-gradient(ellipse at center,rgba(${rgb},0.2) 0%,rgba(0,0,0,0.96) 70%)` }}>
-      <div className="absolute inset-0" style={{ backdropFilter:'blur(22px)', WebkitBackdropFilter:'blur(22px)' }} />
-      {parts.map((p,i) => (
-        <span key={i} className="absolute text-2xl pointer-events-none select-none"
-          style={{ left:`${6+i*13}%`, bottom:`${12+(i%4)*10}%`, animation:`bsParticle ${1.6+i*0.22}s ${i*0.14}s ease-out infinite`, opacity:0 }}>{p}</span>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden"
+      style={{ background:`radial-gradient(ellipse at center, rgba(${rgb},0.22) 0%, rgba(0,0,0,0.97) 65%)` }}>
+
+      {/* Blur backdrop */}
+      <div className="absolute inset-0" style={{ backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)' }} />
+
+      {/* Floating particles */}
+      {parts.map((p, i) => (
+        <span key={i} className="absolute text-xl sm:text-2xl pointer-events-none select-none"
+          style={{
+            left:`${5 + (i % 6) * 18}%`,
+            bottom:`${10 + Math.floor(i / 6) * 40 + (i % 3) * 8}%`,
+            animation:`bsParticle ${1.5 + i * 0.2}s ${i * 0.12}s ease-out infinite`,
+            opacity: 0,
+          }}>{p}</span>
       ))}
+
+      {/* Ambient glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-96 h-96 rounded-full blur-3xl -top-24 -left-24" style={{ background:`rgba(${rgb},0.14)`, animation:'bsGlowPulse 3s ease-in-out infinite' }} />
-        <div className="absolute w-96 h-96 rounded-full blur-3xl -bottom-24 -right-24" style={{ background:`rgba(${rgb},0.10)`, animation:'bsGlowPulse 3.5s 0.6s ease-in-out infinite' }} />
+        <div className="absolute w-80 h-80 rounded-full blur-3xl -top-20 -left-20"
+          style={{ background:`rgba(${rgb},0.16)`, animation:'bsGlowPulse 3s ease-in-out infinite' }} />
+        <div className="absolute w-80 h-80 rounded-full blur-3xl -bottom-20 -right-20"
+          style={{ background:`rgba(${rgb},0.11)`, animation:'bsGlowPulse 3.5s 0.6s ease-in-out infinite' }} />
       </div>
-      <div className="relative z-10 w-full max-w-lg mx-4 rounded-3xl border overflow-hidden"
+
+      {/* Card — slides up on mobile, centered on desktop */}
+      <div className="relative z-10 w-full sm:max-w-md mx-auto rounded-t-3xl sm:rounded-3xl overflow-hidden"
         style={{
-          borderColor:`rgba(${rgb},0.38)`,
-          background:`linear-gradient(145deg,rgba(${rgb},0.13) 0%,rgba(0,0,0,0.97) 55%,rgba(${rgb},0.07) 100%)`,
-          boxShadow:`0 0 100px rgba(${rgb},0.38),0 0 200px rgba(${rgb},0.12),0 40px 80px rgba(0,0,0,0.8)`,
+          border: `1px solid rgba(${rgb},0.4)`,
+          borderBottom: 'none',
+          background:`linear-gradient(155deg, rgba(${rgb},0.15) 0%, rgba(0,0,0,0.98) 50%, rgba(${rgb},0.08) 100%)`,
+          boxShadow:[
+            `0 0 80px rgba(${rgb},0.4)`,
+            `0 0 180px rgba(${rgb},0.14)`,
+            `0 -20px 60px rgba(0,0,0,0.8)`,
+            `inset 0 1px 0 rgba(255,255,255,0.1)`,
+          ].join(','),
           animation:'bsModalIn 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards',
         }}>
+
+        {/* Top accent line */}
         <div className="h-0.5" style={{ background:`linear-gradient(90deg,transparent,${accent},transparent)` }} />
-        <div className="p-8 text-center">
-          <div className="text-7xl mb-3" style={{ animation:'bsFloat 2.5s ease-in-out infinite' }}>{isV?'🏆':'💀'}</div>
-          <h2 className="text-4xl md:text-5xl font-black mb-1 tracking-tight"
-            style={{ color:accent, textShadow:`0 0 40px rgba(${rgb},1),0 0 80px rgba(${rgb},0.5)` }}>
-            {isV ? 'انتصار!' : 'هُزِمت!'}
-          </h2>
-          <p className="text-white/45 mb-6 text-sm" dir="rtl">
-            {isV ? `أسقطت ${monsterName} في المعركة!` : `${monsterName} كان أقوى هذه المرة…`}
-          </p>
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <StatCard label="إجابات صحيحة" value={correct}            color="#4ade80" icon="✅" />
-            <StatCard label="إجابات خاطئة"  value={wrong}              color="#f87171" icon="❌" />
-            <StatCard label="ضرر ألحقته"    value={`${damageDealt}%`}  color={accent}  icon="⚔️" />
-            <StatCard label="ضرر تلقيته"    value={`${damageReceived}%`} color="#f97316" icon="🛡️" />
+
+        {/* Top bar decoration */}
+        <div className="flex items-center justify-center gap-2 pt-3 pb-1">
+          <div className="flex-1 h-px mx-4" style={{ background:`linear-gradient(90deg,transparent,rgba(${rgb},0.4))` }} />
+          <span className="text-xs font-black tracking-widest uppercase opacity-50" style={{ color: accent }}>
+            {isV ? 'VICTORY' : 'DEFEAT'}
+          </span>
+          <div className="flex-1 h-px mx-4" style={{ background:`linear-gradient(90deg,rgba(${rgb},0.4),transparent)` }} />
+        </div>
+
+        <div className="px-4 sm:px-7 pt-2 pb-5">
+          {/* Trophy / Skull */}
+          <div className="text-center mb-3">
+            <div className="text-5xl sm:text-6xl mb-2" style={{ animation:'bsFloat 2.5s ease-in-out infinite' }}>
+              {isV ? '🏆' : '💀'}
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-0.5"
+              style={{ color:accent, textShadow:`0 0 30px rgba(${rgb},1), 0 0 60px rgba(${rgb},0.5)` }}>
+              {isV ? 'انتصار!' : 'هُزِمت!'}
+            </h2>
+            <p className="text-white/40 text-xs sm:text-sm" dir="rtl">
+              {isV ? `أسقطت ${monsterName} في المعركة!` : `${monsterName} كان أقوى هذه المرة…`}
+            </p>
           </div>
-          <div className="mb-6 p-3 rounded-2xl border border-white/8 bg-white/4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-white/45 text-xs" dir="rtl">الدقة</span>
-              <span className="font-black text-sm" style={{ color: accuracy>=70?'#4ade80':accuracy>=40?'#f59e0b':'#f87171' }}>{accuracy}%</span>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {[
+              { label:'إجابات صحيحة', value: correct,            color:'#4ade80', icon:'✅' },
+              { label:'إجابات خاطئة',  value: wrong,              color:'#f87171', icon:'❌' },
+              { label:'ضرر ألحقته',    value:`${damageDealt}%`,   color: accent,   icon:'⚔️' },
+              { label:'ضرر تلقيته',    value:`${damageReceived}%`,color:'#f97316', icon:'🛡️' },
+            ].map((s, idx) => (
+              <div key={idx}
+                className="rounded-xl p-2.5 text-center"
+                style={{
+                  background:'rgba(255,255,255,0.04)',
+                  border:'1px solid rgba(255,255,255,0.08)',
+                  animation:`bsStatIn 0.4s ${0.1 + idx*0.07}s ease both`,
+                }}>
+                <div className="text-base mb-0.5">{s.icon}</div>
+                <div className="text-lg sm:text-xl font-black" style={{ color:s.color }}>{s.value}</div>
+                <div className="text-white/35 text-[10px] sm:text-xs mt-0.5" dir="rtl">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Accuracy bar */}
+          <div className="mb-4 p-3 rounded-2xl" style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-white/40 text-xs" dir="rtl">الدقة</span>
+              <span className="font-black text-sm" style={{ color: accuracy>=70?'#4ade80':accuracy>=40?'#f59e0b':'#f87171' }}>
+                {accuracy}%
+              </span>
             </div>
             <div className="h-2.5 bg-black/60 rounded-full overflow-hidden">
-              <div className="h-full rounded-full"
+              <div className="h-full rounded-full transition-all duration-1000 delay-300"
                 style={{
                   width:`${accuracy}%`,
-                  background: accuracy>=70?'linear-gradient(90deg,#166534,#4ade80)':accuracy>=40?'linear-gradient(90deg,#78350f,#f59e0b)':'linear-gradient(90deg,#7f1d1d,#f87171)',
+                  background: accuracy>=70
+                    ? 'linear-gradient(90deg,#166534,#4ade80)'
+                    : accuracy>=40
+                      ? 'linear-gradient(90deg,#78350f,#f59e0b)'
+                      : 'linear-gradient(90deg,#7f1d1d,#f87171)',
                   boxShadow:`0 0 12px ${accuracy>=70?'#4ade80':accuracy>=40?'#f59e0b':'#f87171'}`,
-                  transition:'width 1.2s cubic-bezier(0.4,0,0.2,1)',
                 }} />
             </div>
           </div>
+
+          {/* CTA Button */}
           <button onClick={onAction}
-            className="w-full py-4 rounded-2xl font-black text-lg tracking-wide active:scale-95 transition-all duration-150 relative overflow-hidden group"
+            className="w-full py-3.5 sm:py-4 rounded-2xl font-black text-base sm:text-lg tracking-wide active:scale-95 transition-all duration-150 relative overflow-hidden group"
             style={{
-              background: isV ? 'linear-gradient(135deg,#78350f,#ca8a04,#eab308,#fde047)' : 'linear-gradient(135deg,#7f1d1d,#b91c1c,#ef4444,#f87171)',
-              boxShadow:`0 0 40px rgba(${rgb},0.65),0 8px 24px rgba(0,0,0,0.5)`,
+              background: isV
+                ? 'linear-gradient(135deg, #78350f 0%, #ca8a04 40%, #eab308 70%, #fde047 100%)'
+                : 'linear-gradient(135deg, #7f1d1d 0%, #b91c1c 40%, #ef4444 75%, #f87171 100%)',
+              boxShadow:`0 0 36px rgba(${rgb},0.7), 0 8px 24px rgba(0,0,0,0.5)`,
               color: isV ? '#000' : '#fff',
+              border: `1px solid rgba(${rgb},0.5)`,
             }}>
+            {/* Animated sheen */}
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden rounded-2xl">
-              <div className="absolute inset-y-0 w-16 bg-white/25 blur-sm" style={{ animation:'bsScan 1s linear infinite' }} />
+              <div className="absolute inset-y-0 w-20 bg-white/30 blur-sm skew-x-12" style={{ animation:'bsScan 0.9s linear infinite' }} />
             </div>
             <span className="relative">{isV ? '🚀 متابعة المغامرة' : '↩ حاول مجدداً'}</span>
           </button>
         </div>
-        <div className="h-0.5" style={{ background:`linear-gradient(90deg,transparent,rgba(${rgb},0.45),transparent)` }} />
+
+        {/* Bottom accent */}
+        <div className="h-0.5" style={{ background:`linear-gradient(90deg,transparent,rgba(${rgb},0.5),transparent)` }} />
       </div>
     </div>
   );
