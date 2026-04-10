@@ -1,0 +1,292 @@
+--- Comprehensive Asset Report for AI ---
+Directory: src/assets/combat/hero1
+Total Images: 8
+Category: Individual Frames (Animation)
+Files List:
+  - Attack1.png
+  - Attack2.png
+  - Death.png
+  - Fall.png
+  - Hit.png
+  - Idle.png
+  - Jump.png
+  - Run.png
+----------------------------------------
+Directory: src/assets/combat/hero2
+Total Images: 8
+Category: Individual Frames (Animation)
+Files List:
+  - Attack_1.png
+  - Attack_2.png
+  - Death.png
+  - Fall.png
+  - Hit.png
+  - Idle.png
+  - Jump.png
+  - Run.png
+----------------------------------------
+Directory: src/assets/combat/hero3/Sprites
+Total Images: 9
+Category: Individual Frames (Animation)
+Files List:
+  - Attack1.png
+  - Attack2.png
+  - Death.png
+  - Fall.png
+  - Idle.png
+  - Jump.png
+  - Run.png
+  - Take Hit.png
+  - Take Hit - white silhouette.png
+----------------------------------------
+Directory: src/assets/combat/monster1/Sprites
+Total Images: 5
+Category: Individual Frames (Animation)
+Files List:
+  - Attack.png
+  - Death.png
+  - Idle.png
+  - Move.png
+  - Take Hit.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/Attack
+Total Images: 10
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Attack_10.png
+  - Bringer-of-Death_Attack_1.png
+  - Bringer-of-Death_Attack_2.png
+  - Bringer-of-Death_Attack_3.png
+  - Bringer-of-Death_Attack_4.png
+  - Bringer-of-Death_Attack_5.png
+  - Bringer-of-Death_Attack_6.png
+  - Bringer-of-Death_Attack_7.png
+  - Bringer-of-Death_Attack_8.png
+  - Bringer-of-Death_Attack_9.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/Cast
+Total Images: 9
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Cast_1.png
+  - Bringer-of-Death_Cast_2.png
+  - Bringer-of-Death_Cast_3.png
+  - Bringer-of-Death_Cast_4.png
+  - Bringer-of-Death_Cast_5.png
+  - Bringer-of-Death_Cast_6.png
+  - Bringer-of-Death_Cast_7.png
+  - Bringer-of-Death_Cast_8.png
+  - Bringer-of-Death_Cast_9.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/Death
+Total Images: 10
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Death_10.png
+  - Bringer-of-Death_Death_1.png
+  - Bringer-of-Death_Death_2.png
+  - Bringer-of-Death_Death_3.png
+  - Bringer-of-Death_Death_4.png
+  - Bringer-of-Death_Death_5.png
+  - Bringer-of-Death_Death_6.png
+  - Bringer-of-Death_Death_7.png
+  - Bringer-of-Death_Death_8.png
+  - Bringer-of-Death_Death_9.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/Hurt
+Total Images: 3
+Category: Sprite Sheet / Single Asset
+Files List:
+  - Bringer-of-Death_Hurt_1.png
+  - Bringer-of-Death_Hurt_2.png
+  - Bringer-of-Death_Hurt_3.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/Idle
+Total Images: 8
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Idle_1.png
+  - Bringer-of-Death_Idle_2.png
+  - Bringer-of-Death_Idle_3.png
+  - Bringer-of-Death_Idle_4.png
+  - Bringer-of-Death_Idle_5.png
+  - Bringer-of-Death_Idle_6.png
+  - Bringer-of-Death_Idle_7.png
+  - Bringer-of-Death_Idle_8.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack
+Total Images: 10
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Attack_10.png
+  - Bringer-of-Death_Attack_1.png
+  - Bringer-of-Death_Attack_2.png
+  - Bringer-of-Death_Attack_3.png
+  - Bringer-of-Death_Attack_4.png
+  - Bringer-of-Death_Attack_5.png
+  - Bringer-of-Death_Attack_6.png
+  - Bringer-of-Death_Attack_7.png
+  - Bringer-of-Death_Attack_8.png
+  - Bringer-of-Death_Attack_9.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast
+Total Images: 9
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Cast_1.png
+  - Bringer-of-Death_Cast_2.png
+  - Bringer-of-Death_Cast_3.png
+  - Bringer-of-Death_Cast_4.png
+  - Bringer-of-Death_Cast_5.png
+  - Bringer-of-Death_Cast_6.png
+  - Bringer-of-Death_Cast_7.png
+  - Bringer-of-Death_Cast_8.png
+  - Bringer-of-Death_Cast_9.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death
+Total Images: 10
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Death_10.png
+  - Bringer-of-Death_Death_1.png
+  - Bringer-of-Death_Death_2.png
+  - Bringer-of-Death_Death_3.png
+  - Bringer-of-Death_Death_4.png
+  - Bringer-of-Death_Death_5.png
+  - Bringer-of-Death_Death_6.png
+  - Bringer-of-Death_Death_7.png
+  - Bringer-of-Death_Death_8.png
+  - Bringer-of-Death_Death_9.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Hurt
+Total Images: 3
+Category: Sprite Sheet / Single Asset
+Files List:
+  - Bringer-of-Death_Hurt_1.png
+  - Bringer-of-Death_Hurt_2.png
+  - Bringer-of-Death_Hurt_3.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell
+Total Images: 16
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Spell_10.png
+  - Bringer-of-Death_Spell_11.png
+  - Bringer-of-Death_Spell_12.png
+  - Bringer-of-Death_Spell_13.png
+  - Bringer-of-Death_Spell_14.png
+  - Bringer-of-Death_Spell_15.png
+  - Bringer-of-Death_Spell_16.png
+  - Bringer-of-Death_Spell_1.png
+  - Bringer-of-Death_Spell_2.png
+  - Bringer-of-Death_Spell_3.png
+  - Bringer-of-Death_Spell_4.png
+  - Bringer-of-Death_Spell_5.png
+  - Bringer-of-Death_Spell_6.png
+  - Bringer-of-Death_Spell_7.png
+  - Bringer-of-Death_Spell_8.png
+  - Bringer-of-Death_Spell_9.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/Spell
+Total Images: 16
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Spell_10.png
+  - Bringer-of-Death_Spell_11.png
+  - Bringer-of-Death_Spell_12.png
+  - Bringer-of-Death_Spell_13.png
+  - Bringer-of-Death_Spell_14.png
+  - Bringer-of-Death_Spell_15.png
+  - Bringer-of-Death_Spell_16.png
+  - Bringer-of-Death_Spell_1.png
+  - Bringer-of-Death_Spell_2.png
+  - Bringer-of-Death_Spell_3.png
+  - Bringer-of-Death_Spell_4.png
+  - Bringer-of-Death_Spell_5.png
+  - Bringer-of-Death_Spell_6.png
+  - Bringer-of-Death_Spell_7.png
+  - Bringer-of-Death_Spell_8.png
+  - Bringer-of-Death_Spell_9.png
+----------------------------------------
+Directory: src/assets/combat/monster2/Individual Sprite/Walk
+Total Images: 8
+Category: Individual Frames (Animation)
+Files List:
+  - Bringer-of-Death_Walk_1.png
+  - Bringer-of-Death_Walk_2.png
+  - Bringer-of-Death_Walk_3.png
+  - Bringer-of-Death_Walk_4.png
+  - Bringer-of-Death_Walk_5.png
+  - Bringer-of-Death_Walk_6.png
+  - Bringer-of-Death_Walk_7.png
+  - Bringer-of-Death_Walk_8.png
+----------------------------------------
+Directory: src/assets/combat/monster2/SpriteSheet
+Total Images: 2
+Category: Sprite Sheet / Single Asset
+Files List:
+  - Bringer-of-Death-SpritSheet_no-Effect.png
+  - Bringer-of-Death-SpritSheet.png
+----------------------------------------
+Directory: src/assets/combat/monster3/Sprites
+Total Images: 8
+Category: Individual Frames (Animation)
+Files List:
+  - Attack1.png
+  - Attack2.png
+  - Death.png
+  - Fall.png
+  - Idle.png
+  - Jump.png
+  - Run.png
+  - Take hit.png
+----------------------------------------
+Directory: src/assets/combat/monster4/Sprites
+Total Images: 8
+Category: Individual Frames (Animation)
+Files List:
+  - Attack1.png
+  - Attack2.png
+  - Death.png
+  - Fall.png
+  - Idle.png
+  - Jump.png
+  - Run.png
+  - Take Hit.png
+----------------------------------------
+Directory: src/assets/combat/monster4/islands
+Total Images: 31
+Category: Individual Frames (Animation)
+Files List:
+  - island10.png
+  - island11.png
+  - island12.png
+  - island13.png
+  - island14.png
+  - island15.png
+  - island16.png
+  - island17.png
+  - island18.png
+  - island19.png
+  - island1.png
+  - island20.png
+  - island21.png
+  - island22.png
+  - island23.png
+  - island24.png
+  - island25.png
+  - island26.png
+  - island27.png
+  - island28.png
+  - island29.png
+  - island2.png
+  - island30.png
+  - island31.png
+  - island3.png
+  - island4.png
+  - island5.png
+  - island6.png
+  - island7.png
+  - island8.png
+  - island9.png
+----------------------------------------

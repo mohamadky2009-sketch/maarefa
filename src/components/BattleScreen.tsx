@@ -1,287 +1,342 @@
-import { useState, useCallback, useMemo } from 'react';
-import { CHARACTERS, ISLANDS, Island, IslandQuestion, playSound } from '@/lib/gameState';
+import { useState, useEffect, useMemo } from 'react';
 import { useGame } from '@/context/GameContext';
+import { ISLANDS, CHARACTERS, PLANETS } from '@/lib/gameState';
 
-// ─── Sprite helpers ───────────────────────────────────────────────
-const getHeroImage = (folder: string, action: 'idle' | 'attack'): string => {
-  const base = `/src/assets/combat/${folder}`;
-  if (folder === 'hero3') return action === 'attack' ? `${base}/Sprites/Attack1.png` : `${base}/Sprites/Idle.png`;
-  if (folder === 'hero2') return action === 'attack' ? `${base}/Attack_1.png` : `${base}/Idle.png`;
-  return action === 'attack' ? `${base}/Attack1.png` : `${base}/Idle.png`;
-};
-
-const getMonsterImage = (folder: string, action: 'idle' | 'attack'): string => {
-  const base = `/src/assets/combat/${folder}`;
-  if (folder === 'monster2') {
-    return action === 'attack'
-      ? `${base}/Individual Sprite/Attack/Bringer-of-Death_Attack_1.png`
-      : `${base}/Individual Sprite/Idle/Bringer-of-Death_Idle_1.png`;
-  }
-  if (folder === 'monster1') return action === 'attack' ? `${base}/Sprites/Attack.png` : `${base}/Sprites/Idle.png`;
-  return action === 'attack' ? `${base}/Sprites/Attack1.png` : `${base}/Sprites/Idle.png`;
-};
-
-// ─── Props ────────────────────────────────────────────────────────
 interface Props {
   planetId: number;
   islandId: number;
+  onBack: () => void;
   onVictory: () => void;
   onDefeat: () => void;
-  onBack: () => void;
 }
 
-// ─── Main component ───────────────────────────────────────────────
-const BattleScreen = ({ planetId, islandId, onVictory, onDefeat, onBack }: Props) => {
-  const { state, currentPlayer, updatePlayer } = useGame();
+type ActionState = 'idle' | 'attack' | 'hurt' | 'death';
 
-  // Resolve the island (static or admin-added)
-  const island: Island | undefined = useMemo(
-    () => [...ISLANDS, ...state.customIslands].find(is => is.id === islandId),
-    [islandId, state.customIslands]
-  );
+// ──────────────────────────────────────────────────────────────
+// Sprite engine — handles both sprite sheets and individual frames
+// ──────────────────────────────────────────────────────────────
+const DynamicSprite = ({
+  folder,
+  action,
+  frames,
+  isHero,
+  type,
+  size = 'md',
+}: {
+  folder: string;
+  action: ActionState;
+  frames: Record<ActionState, number>;
+  isHero: boolean;
+  type: 'sheet' | 'individual';
+  size?: 'sm' | 'md';
+}) => {
+  const [frame, setFrame] = useState(1);
+  const totalFrames = frames[action] ?? 8;
 
-  // Build question pool: use admin-added questions for this island first,
-  // otherwise fall back to the island's embedded default question.
-  const questionPool: IslandQuestion[] = useMemo(() => {
-    const adminQs = state.questions.filter(q => q.islandId === islandId);
-    if (adminQs.length > 0) {
-      return adminQs.map(q => ({ text: q.text, options: q.options, correctIndex: q.correctIndex }));
+  useEffect(() => {
+    setFrame(1);
+    const timer = setInterval(() => {
+      setFrame(prev => (prev % totalFrames) + 1);
+    }, 120);
+    return () => clearInterval(timer);
+  }, [action, totalFrames]);
+
+  const getPath = (): string => {
+    // monster2 — individual PNG files
+    if (type === 'individual') {
+      const map: Record<ActionState, string> = {
+        idle: 'Idle', attack: 'Attack', hurt: 'Hurt', death: 'Death',
+      };
+      const aName = map[action] ?? 'Idle';
+      return `/src/assets/combat/${folder}/Individual Sprite/${aName}/Bringer-of-Death_${aName}_${frame}.png`;
     }
-    return island ? [island.question] : [];
-  }, [state.questions, islandId, island]);
 
-  // How many correct answers are needed to win (configurable per island)
-  const totalNeeded: number = state.battleSettings.questionsPerGuard[String(islandId)] ?? 3;
-  const playerAttack = state.battleSettings.playerAttack;
-  const guardAttack = state.battleSettings.guardAttack;
+    // Sprite sheets
+    const sub = (folder === 'hero3' || folder.startsWith('monster')) ? 'Sprites/' : '';
 
-  // ── State ────────────────────────────────────────────────────────
-  const [correctCount, setCorrectCount] = useState(0);
-  const [playerHp, setPlayerHp] = useState(currentPlayer?.hp ?? 100);
-  const [guardHp, setGuardHp] = useState(100);
-  const [qIndex, setQIndex] = useState(0);
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
-  const [playerAction, setPlayerAction] = useState<'idle' | 'attack'>('idle');
-  const [guardAction, setGuardAction] = useState<'idle' | 'attack'>('idle');
-  const [playerOffset, setPlayerOffset] = useState(0);
-  const [guardOffset, setGuardOffset] = useState(0);
-
-  const currentQ = questionPool.length > 0 ? questionPool[qIndex % questionPool.length] : null;
-
-  // ── Answer handler ───────────────────────────────────────────────
-  const handleAnswer = useCallback((chosenIndex: number) => {
-    if (!currentPlayer || !currentQ || feedback !== null) return;
-
-    const correct = chosenIndex === currentQ.correctIndex;
-
-    if (correct) {
-      playSound('correct');
-      setFeedback('correct');
-      setPlayerOffset(220);
-
-      setTimeout(() => {
-        setPlayerAction('attack');
-        const newCorrect = correctCount + 1;
-        const newGuardHp = Math.max(0, guardHp - playerAttack);
-        setGuardHp(newGuardHp);
-        setCorrectCount(newCorrect);
-        updatePlayer({ ...currentPlayer, gold: currentPlayer.gold + 10, xp: currentPlayer.xp + 15 });
-
-        setTimeout(() => {
-          setPlayerAction('idle');
-          setPlayerOffset(0);
-
-          if (newCorrect >= totalNeeded || newGuardHp <= 0) {
-            setTimeout(onVictory, 400);
-          } else {
-            setFeedback(null);
-            setQIndex(q => q + 1);
-          }
-        }, 700);
-      }, 300);
-
-    } else {
-      playSound('wrong');
-      setFeedback('wrong');
-      setGuardOffset(-220);
-
-      setTimeout(() => {
-        setGuardAction('attack');
-        const newHp = Math.max(0, playerHp - guardAttack);
-        setPlayerHp(newHp);
-
-        setTimeout(() => {
-          setGuardAction('idle');
-          setGuardOffset(0);
-
-          if (newHp <= 0) {
-            setTimeout(onDefeat, 400);
-          } else {
-            setFeedback(null);
-            setQIndex(q => q + 1);
-          }
-        }, 700);
-      }, 300);
+    let fileName = 'Idle.png';
+    if (action === 'attack') {
+      if (folder === 'hero2') fileName = 'Attack_1.png';
+      else if (folder === 'monster1') fileName = 'Attack.png';
+      else fileName = 'Attack1.png';
+    } else if (action === 'hurt') {
+      if (folder === 'hero1' || folder === 'hero2') fileName = 'Hit.png';
+      else if (folder === 'monster3') fileName = 'Take hit.png';
+      else fileName = 'Take Hit.png';
+    } else if (action === 'death') {
+      fileName = 'Death.png';
     }
-  }, [currentPlayer, currentQ, feedback, correctCount, guardHp, playerHp, totalNeeded, playerAttack, guardAttack, updatePlayer, onVictory, onDefeat]);
 
-  // ── Guard ────────────────────────────────────────────────────────
-  if (!currentPlayer) return null;
+    return `/src/assets/combat/${folder}/${sub}${fileName}`;
+  };
 
-  if (!island || questionPool.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050510] text-white gap-6">
-        <p className="text-2xl text-yellow-400 font-bold">⚠️ لا توجد أسئلة لهذه الجزيرة بعد</p>
-        <p className="text-white/60 text-sm">يمكن للأدمن إضافة أسئلة من لوحة التحكم</p>
-        <button onClick={onBack} className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-bold transition-all">
-          ← رجوع
-        </button>
-      </div>
-    );
-  }
-
-  const heroFolder = CHARACTERS.find(c => c.id === currentPlayer.characterId)?.folder ?? 'hero1';
-  const monsterFolder = island.enemyFolder;
-  const guardHpPercent = Math.max(0, (guardHp / 100) * 100);
-  const playerHpPercent = Math.max(0, (playerHp / currentPlayer.maxHp) * 100);
+  const posX = totalFrames > 1 ? ((frame - 1) / (totalFrames - 1)) * 100 : 0;
+  const sizeClass = size === 'sm'
+    ? 'w-36 h-36 md:w-52 md:h-52'
+    : 'w-44 h-44 md:w-72 md:h-72';
 
   return (
-    <div className="min-h-screen relative flex flex-col z-10 overflow-hidden bg-[#050510] text-white">
+    <div
+      className={`${sizeClass} ${!isHero ? 'scale-x-[-1]' : ''} drop-shadow-2xl`}
+      style={{
+        backgroundImage: `url('${getPath()}')`,
+        backgroundSize: type === 'individual' ? 'contain' : `${totalFrames * 100}% 100%`,
+        backgroundPosition: type === 'individual' ? 'center' : `${posX}% center`,
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'pixelated',
+      }}
+    />
+  );
+};
 
-      {/* Arena background */}
+// ──────────────────────────────────────────────────────────────
+// HP Bar
+// ──────────────────────────────────────────────────────────────
+const HpBar = ({ value, max = 100, color, label }: { value: number; max?: number; color: string; label: string }) => (
+  <div className="flex-1 min-w-0">
+    <p className="font-black mb-1 text-sm uppercase truncate" style={{ color }}>{label}</p>
+    <div className="h-4 bg-black/60 rounded-full overflow-hidden border border-white/10">
       <div
-        className="absolute inset-0 -z-10"
-        style={{ background: 'radial-gradient(circle at 50% 75%, #1a1a3f 0%, #050510 70%)' }}
-      >
-        <div
-          className="absolute bottom-0 w-full h-60"
-          style={{
-            background: 'linear-gradient(transparent, rgba(59,130,246,0.08))',
-            borderTop: '1px solid rgba(59,130,246,0.15)',
-            transform: 'perspective(600px) rotateX(35deg)',
-          }}
-        />
+        className="h-full rounded-full transition-all duration-500"
+        style={{
+          width: `${(value / max) * 100}%`,
+          background: `linear-gradient(90deg, ${color}88, ${color})`,
+          boxShadow: `0 0 12px ${color}88`,
+        }}
+      />
+    </div>
+    <p className="text-xs text-white/40 mt-0.5 text-left">{value}/{max}</p>
+  </div>
+);
+
+// ──────────────────────────────────────────────────────────────
+// Main BattleScreen
+// ──────────────────────────────────────────────────────────────
+const BattleScreen = ({ planetId, islandId, onBack, onVictory, onDefeat }: Props) => {
+  const { currentPlayer, state } = useGame();
+
+  const island = useMemo(
+    () => [...ISLANDS, ...(state.customIslands ?? [])].find(is => is.id === islandId),
+    [islandId, state.customIslands],
+  );
+  const planet  = PLANETS.find(p => p.id === planetId);
+  const heroData = CHARACTERS.find(c => c.id === currentPlayer?.characterId);
+
+  const monsterConfig = useMemo(() => {
+    const configs = [
+      { name: 'ساحر النار',    folder: 'monster1', frames: { idle: 8, attack: 8,  hurt: 3, death: 5  }, type: 'sheet'      as const },
+      { name: 'جالب الموت',   folder: 'monster2', frames: { idle: 8, attack: 10, hurt: 3, death: 10 }, type: 'individual' as const },
+      { name: 'سيد الظلام',   folder: 'monster3', frames: { idle: 8, attack: 8,  hurt: 3, death: 7  }, type: 'sheet'      as const },
+      { name: 'الفارس المتمرد', folder: 'monster4', frames: { idle: 11, attack: 7, hurt: 4, death: 11 }, type: 'sheet'    as const },
+    ];
+    return configs[(islandId) % 4];
+  }, [islandId]);
+
+  const heroFrames = useMemo<Record<ActionState, number>>(() => {
+    if (heroData?.folder === 'hero1') return { idle: 6, attack: 8, hurt: 4, death: 7 };
+    if (heroData?.folder === 'hero2') return { idle: 6, attack: 6, hurt: 4, death: 11 };
+    return { idle: 8, attack: 8, hurt: 4, death: 6 };
+  }, [heroData]);
+
+  const [heroHP,      setHeroHP]      = useState(100);
+  const [monsterHP,   setMonsterHP]   = useState(100);
+  const [heroAction,  setHeroAction]  = useState<ActionState>('idle');
+  const [monsterAction, setMonsterAction] = useState<ActionState>('idle');
+  const [isDashing,   setIsDashing]   = useState(false);
+  const [showResult,  setShowResult]  = useState<'none' | 'correct' | 'wrong'>('none');
+  const [answered,    setAnswered]    = useState(false);
+
+  const pColor = planet?.color ?? '#1e40af';
+
+  if (!island || !currentPlayer || !heroData) return null;
+
+  // ── Answer logic ─────────────────────────────────────────────
+  const handleAnswer = (index: number) => {
+    if (answered) return;
+    setAnswered(true);
+
+    const isCorrect = index === island.question.correctIndex;
+    if (isCorrect) executeHeroAttack();
+    else           executeMonsterAttack();
+
+    setTimeout(() => setAnswered(false), 2600);
+  };
+
+  const executeHeroAttack = () => {
+    setShowResult('correct');
+    setIsDashing(true);
+    setHeroAction('attack');
+    setTimeout(() => {
+      setMonsterAction('hurt');
+      setMonsterHP(prev => Math.max(0, prev - 50));
+    }, 500);
+    setTimeout(() => {
+      setHeroAction('idle');
+      setMonsterAction('idle');
+      setIsDashing(false);
+      setShowResult('none');
+    }, 2500);
+  };
+
+  const executeMonsterAttack = () => {
+    setShowResult('wrong');
+    setMonsterAction('attack');
+    setTimeout(() => {
+      setHeroAction('hurt');
+      setHeroHP(prev => Math.max(0, prev - 25));
+    }, 500);
+    setTimeout(() => {
+      setMonsterAction('idle');
+      setHeroAction('idle');
+      setShowResult('none');
+    }, 2000);
+  };
+
+  useEffect(() => {
+    if (monsterHP <= 0) {
+      setMonsterAction('death');
+      setTimeout(onVictory, 2000);
+    }
+    if (heroHP <= 0) {
+      setHeroAction('death');
+      setTimeout(onDefeat, 2000);
+    }
+  }, [monsterHP, heroHP]);
+
+  // ── Render ────────────────────────────────────────────────────
+  return (
+    <div
+      className="min-h-screen flex flex-col items-center justify-between p-4 overflow-hidden relative"
+      style={{
+        background: `
+          radial-gradient(ellipse at 20% 80%, ${pColor}33 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 20%, ${pColor}22 0%, transparent 50%),
+          linear-gradient(180deg, #05050f 0%, #0a0a1a 50%, #0d0d22 100%)
+        `,
+      }}
+    >
+      {/* Floating star particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full animate-pulse"
+            style={{
+              width: Math.random() * 3 + 1,
+              height: Math.random() * 3 + 1,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              background: pColor,
+              opacity: Math.random() * 0.5 + 0.1,
+              animationDelay: `${Math.random() * 3}s`,
+            }}
+          />
+        ))}
       </div>
 
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-6 pt-4">
-        <button
-          onClick={onBack}
-          className="text-sm text-white/50 hover:text-white transition-colors"
+      {/* ── HP Bars ───────────────────────────────────────────── */}
+      <div className="w-full max-w-5xl flex justify-between gap-6 bg-black/60 backdrop-blur-md p-5 rounded-3xl border border-white/10 z-10">
+        <HpBar value={heroHP}    color="#22d3ee" label={currentPlayer.name} />
+        <div className="flex items-center px-4">
+          <span className="text-white/20 text-2xl font-black">⚔</span>
+        </div>
+        <HpBar value={monsterHP} color="#ef4444" label={monsterConfig.name} />
+      </div>
+
+      {/* ── Arena ─────────────────────────────────────────────── */}
+      <div className="relative w-full max-w-6xl flex items-end justify-between px-6 md:px-24 py-4 z-10">
+        {/* Ground line */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1 rounded-full opacity-30"
+          style={{ background: `linear-gradient(90deg, transparent, ${pColor}, transparent)` }}
+        />
+
+        {/* Hero */}
+        <div
+          className={`transition-transform duration-[700ms] ease-in-out`}
+          style={{ transform: isDashing ? 'translateX(280px)' : 'translateX(0)' }}
         >
-          ← رجوع
-        </button>
-        <h1 className="text-lg font-black text-white/80 tracking-wide">{island.name}</h1>
-        <div className="text-sm text-yellow-400 font-bold">
-          {correctCount} / {totalNeeded} ✓
+          <DynamicSprite
+            folder={heroData.folder}
+            action={heroAction}
+            frames={heroFrames}
+            isHero={true}
+            type="sheet"
+          />
+        </div>
+
+        {/* Monster */}
+        <div className={monsterAction === 'hurt' ? 'animate-bounce' : ''}>
+          <DynamicSprite
+            folder={monsterConfig.folder}
+            action={monsterAction}
+            frames={monsterConfig.frames}
+            isHero={false}
+            type={monsterConfig.type}
+          />
         </div>
       </div>
 
-      {/* Progress bar (correct answers) */}
-      <div className="mx-6 mt-2 h-2 bg-white/10 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-yellow-500 transition-all duration-500 rounded-full shadow-[0_0_8px_#eab308]"
-          style={{ width: `${(correctCount / totalNeeded) * 100}%` }}
-        />
+      {/* ── Question panel ────────────────────────────────────── */}
+      <div
+        className="w-full max-w-4xl rounded-t-[40px] p-6 md:p-8 z-10 border-t-2"
+        style={{
+          background: 'rgba(5,5,20,0.92)',
+          backdropFilter: 'blur(20px)',
+          borderColor: `${pColor}55`,
+        }}
+      >
+        <h3
+          className="text-center text-xl md:text-2xl font-black mb-6 text-white leading-relaxed"
+          dir="rtl"
+        >
+          {island.question.text}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3" dir="rtl">
+          {island.question.options.map((opt, i) => (
+            <button
+              key={i}
+              onClick={() => handleAnswer(i)}
+              disabled={answered}
+              className="p-4 md:p-5 rounded-2xl text-base md:text-lg font-bold text-right transition-all duration-200 border relative overflow-hidden group"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                borderColor: `${pColor}33`,
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = `${pColor}22`;
+                (e.currentTarget as HTMLElement).style.borderColor = `${pColor}88`;
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
+                (e.currentTarget as HTMLElement).style.borderColor = `${pColor}33`;
+              }}
+            >
+              <span className="opacity-40 ml-2">{i + 1}.</span> {opt}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Battle arena */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 gap-8">
-        <div className="relative w-full max-w-5xl h-72 flex items-end justify-between px-8">
+      {/* Retreat button */}
+      <button
+        onClick={onBack}
+        className="absolute top-4 left-4 text-white/30 hover:text-white/70 transition-colors text-sm z-20"
+      >
+        🏳️ انسحاب
+      </button>
 
-          {/* Hero (left) */}
+      {/* Result flash */}
+      {showResult !== 'none' && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
           <div
-            className="flex flex-col items-center transition-all duration-300"
-            style={{ transform: `translateX(${playerOffset}px)` }}
+            className={`text-8xl md:text-9xl font-black animate-bounce drop-shadow-2xl`}
+            style={{ filter: showResult === 'correct' ? 'drop-shadow(0 0 30px #22c55e)' : 'drop-shadow(0 0 30px #ef4444)' }}
           >
-            <img
-              src={getHeroImage(heroFolder, playerAction)}
-              alt="hero"
-              className="w-40 h-40 md:w-56 md:h-56 object-contain"
-              style={{ imageRendering: 'pixelated', transform: 'scaleX(-1)' }}
-            />
-            <div className="mt-3 w-28">
-              <div className="h-2 bg-gray-800 rounded-full border border-blue-500/30 overflow-hidden">
-                <div
-                  className="h-full bg-blue-500 transition-all duration-300"
-                  style={{ width: `${playerHpPercent}%` }}
-                />
-              </div>
-              <p className="text-xs text-blue-300 font-bold mt-1 text-center">{currentPlayer.name}</p>
-            </div>
-          </div>
-
-          {/* Monster (right) */}
-          <div
-            className="flex flex-col items-center transition-all duration-300"
-            style={{ transform: `translateX(${guardOffset}px)` }}
-          >
-            <img
-              src={getMonsterImage(monsterFolder, guardAction)}
-              alt="monster"
-              className={`w-40 h-40 md:w-56 md:h-56 object-contain transition-all duration-200 ${feedback === 'correct' ? 'brightness-200 saturate-0' : ''}`}
-              style={{ imageRendering: 'pixelated' }}
-            />
-            <div className="mt-3 w-28">
-              <div className="h-2 bg-gray-800 rounded-full border border-red-500/30 overflow-hidden">
-                <div
-                  className="h-full bg-red-500 transition-all duration-500"
-                  style={{ width: `${guardHpPercent}%` }}
-                />
-              </div>
-              <p className="text-xs text-red-400 font-bold mt-1 text-center">حارس الجزيرة</p>
-            </div>
+            {showResult === 'correct' ? '✅' : '❌'}
           </div>
         </div>
-
-        {/* Question card */}
-        <div className="w-full max-w-2xl bg-[#0a0a20]/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-
-          {/* Feedback banner */}
-          {feedback === 'correct' && (
-            <div className="text-center text-green-400 font-black text-xl mb-4 animate-bounce">
-              ✅ إجابة صحيحة! أحسنت!
-            </div>
-          )}
-          {feedback === 'wrong' && (
-            <div className="text-center text-red-400 font-black text-xl mb-4">
-              ❌ إجابة خاطئة!
-            </div>
-          )}
-
-          {/* Question text */}
-          <h2 className="text-xl md:text-2xl font-bold text-white text-center mb-6 leading-relaxed" dir="rtl">
-            {currentQ.text}
-          </h2>
-
-          {/* Options */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" dir="rtl">
-            {currentQ.options.map((opt, i) => {
-              let style = 'border-white/10 bg-white/5 text-gray-200 hover:bg-blue-500/20 hover:border-blue-500/60';
-              if (feedback === 'correct' && i === currentQ.correctIndex) {
-                style = 'border-green-500 bg-green-500/20 text-white shadow-[0_0_16px_rgba(34,197,94,0.4)]';
-              } else if (feedback === 'wrong') {
-                if (i === currentQ.correctIndex) {
-                  style = 'border-green-500/60 bg-green-500/10 text-green-300';
-                } else {
-                  style = 'border-white/5 bg-white/3 text-white/30 opacity-40';
-                }
-              }
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleAnswer(i)}
-                  disabled={feedback !== null}
-                  className={`py-4 px-5 rounded-2xl border-2 font-bold text-base md:text-lg transition-all duration-200 active:scale-95 text-right ${style}`}
-                >
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

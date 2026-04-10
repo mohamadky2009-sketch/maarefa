@@ -8,9 +8,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 5000,
-    allowedHosts: true, // السطر السحري لفك حظر الرابط 🚀
-    hmr: {
-      overlay: false,
+    allowedHosts: true,
+    hmr: { overlay: false },
+    watch: {
+      ignored: ['**/.bun/**', '**/.cache/**', '**/node_modules/.cache/**'],
     },
   },
   plugins: [

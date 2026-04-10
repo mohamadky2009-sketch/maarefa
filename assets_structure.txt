@@ -1,0 +1,225 @@
+src/assets/combat
+src/assets/combat/hero1
+src/assets/combat/hero1/Attack1.png
+src/assets/combat/hero1/Attack2.png
+src/assets/combat/hero1/Death.png
+src/assets/combat/hero1/Fall.png
+src/assets/combat/hero1/Hit.png
+src/assets/combat/hero1/Idle.png
+src/assets/combat/hero1/Jump.png
+src/assets/combat/hero1/Run.png
+src/assets/combat/hero2
+src/assets/combat/hero2/Attack_1.png
+src/assets/combat/hero2/Attack_2.png
+src/assets/combat/hero2/Death.png
+src/assets/combat/hero2/Fall.png
+src/assets/combat/hero2/Hit.png
+src/assets/combat/hero2/Idle.png
+src/assets/combat/hero2/Jump.png
+src/assets/combat/hero2/Run.png
+src/assets/combat/hero3
+src/assets/combat/hero3/License.txt
+src/assets/combat/hero3/Sprites
+src/assets/combat/hero3/Sprites/Attack1.png
+src/assets/combat/hero3/Sprites/Attack2.png
+src/assets/combat/hero3/Sprites/Death.png
+src/assets/combat/hero3/Sprites/Fall.png
+src/assets/combat/hero3/Sprites/Idle.png
+src/assets/combat/hero3/Sprites/Jump.png
+src/assets/combat/hero3/Sprites/Run.png
+src/assets/combat/hero3/Sprites/Take Hit - white silhouette.png
+src/assets/combat/hero3/Sprites/Take Hit.png
+src/assets/combat/monster1
+src/assets/combat/monster1/License.txt
+src/assets/combat/monster1/Sprites
+src/assets/combat/monster1/Sprites/Attack.png
+src/assets/combat/monster1/Sprites/Death.png
+src/assets/combat/monster1/Sprites/Idle.png
+src/assets/combat/monster1/Sprites/Move.png
+src/assets/combat/monster1/Sprites/Take Hit.png
+src/assets/combat/monster2
+src/assets/combat/monster2/Contact.txt
+src/assets/combat/monster2/Individual Sprite
+src/assets/combat/monster2/Individual Sprite/Attack
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_1.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_10.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_2.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_3.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_4.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_5.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_6.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_7.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_8.png
+src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_9.png
+src/assets/combat/monster2/Individual Sprite/Cast
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_1.png
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_2.png
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_3.png
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_4.png
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_5.png
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_6.png
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_7.png
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_8.png
+src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_9.png
+src/assets/combat/monster2/Individual Sprite/Death
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_1.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_10.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_2.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_3.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_4.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_5.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_6.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_7.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_8.png
+src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_9.png
+src/assets/combat/monster2/Individual Sprite/Hurt
+src/assets/combat/monster2/Individual Sprite/Hurt/Bringer-of-Death_Hurt_1.png
+src/assets/combat/monster2/Individual Sprite/Hurt/Bringer-of-Death_Hurt_2.png
+src/assets/combat/monster2/Individual Sprite/Hurt/Bringer-of-Death_Hurt_3.png
+src/assets/combat/monster2/Individual Sprite/Idle
+src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_1.png
+src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_2.png
+src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_3.png
+src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_4.png
+src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_5.png
+src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_6.png
+src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_7.png
+src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_8.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_1.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_10.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_2.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_3.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_4.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_5.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_6.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_7.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_8.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Attack/Bringer-of-Death_Attack_9.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_1.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_2.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_3.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_4.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_5.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_6.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_7.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_8.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Cast/Bringer-of-Death_Cast_9.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_1.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_10.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_2.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_3.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_4.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_5.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_6.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_7.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_8.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Death/Bringer-of-Death_Death_9.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Hurt
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Hurt/Bringer-of-Death_Hurt_1.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Hurt/Bringer-of-Death_Hurt_2.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Hurt/Bringer-of-Death_Hurt_3.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_1.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_10.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_11.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_12.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_13.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_14.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_15.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_16.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_2.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_3.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_4.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_5.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_6.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_7.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_8.png
+src/assets/combat/monster2/Individual Sprite/No Effect Sprites/Spell/Bringer-of-Death_Spell_9.png
+src/assets/combat/monster2/Individual Sprite/Spell
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_1.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_10.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_11.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_12.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_13.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_14.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_15.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_16.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_2.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_3.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_4.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_5.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_6.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_7.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_8.png
+src/assets/combat/monster2/Individual Sprite/Spell/Bringer-of-Death_Spell_9.png
+src/assets/combat/monster2/Individual Sprite/Walk
+src/assets/combat/monster2/Individual Sprite/Walk/Bringer-of-Death_Walk_1.png
+src/assets/combat/monster2/Individual Sprite/Walk/Bringer-of-Death_Walk_2.png
+src/assets/combat/monster2/Individual Sprite/Walk/Bringer-of-Death_Walk_3.png
+src/assets/combat/monster2/Individual Sprite/Walk/Bringer-of-Death_Walk_4.png
+src/assets/combat/monster2/Individual Sprite/Walk/Bringer-of-Death_Walk_5.png
+src/assets/combat/monster2/Individual Sprite/Walk/Bringer-of-Death_Walk_6.png
+src/assets/combat/monster2/Individual Sprite/Walk/Bringer-of-Death_Walk_7.png
+src/assets/combat/monster2/Individual Sprite/Walk/Bringer-of-Death_Walk_8.png
+src/assets/combat/monster2/License.txt
+src/assets/combat/monster2/SpriteSheet
+src/assets/combat/monster2/SpriteSheet/Bringer-of-Death-SpritSheet.png
+src/assets/combat/monster2/SpriteSheet/Bringer-of-Death-SpritSheet_no-Effect.png
+src/assets/combat/monster3
+src/assets/combat/monster3/License.txt
+src/assets/combat/monster3/Sprites
+src/assets/combat/monster3/Sprites/Attack1.png
+src/assets/combat/monster3/Sprites/Attack2.png
+src/assets/combat/monster3/Sprites/Death.png
+src/assets/combat/monster3/Sprites/Fall.png
+src/assets/combat/monster3/Sprites/Idle.png
+src/assets/combat/monster3/Sprites/Jump.png
+src/assets/combat/monster3/Sprites/Run.png
+src/assets/combat/monster3/Sprites/Take hit.png
+src/assets/combat/monster4
+src/assets/combat/monster4/License.txt
+src/assets/combat/monster4/Sprites
+src/assets/combat/monster4/Sprites/Attack1.png
+src/assets/combat/monster4/Sprites/Attack2.png
+src/assets/combat/monster4/Sprites/Death.png
+src/assets/combat/monster4/Sprites/Fall.png
+src/assets/combat/monster4/Sprites/Idle.png
+src/assets/combat/monster4/Sprites/Jump.png
+src/assets/combat/monster4/Sprites/Run.png
+src/assets/combat/monster4/Sprites/Take Hit.png
+src/assets/combat/monster4/islands
+src/assets/combat/monster4/islands/island1.png
+src/assets/combat/monster4/islands/island4.png
+src/assets/combat/monster4/islands/island2.png
+src/assets/combat/monster4/islands/island3.png
+src/assets/combat/monster4/islands/island5.png
+src/assets/combat/monster4/islands/island6.png
+src/assets/combat/monster4/islands/island7.png
+src/assets/combat/monster4/islands/island8.png
+src/assets/combat/monster4/islands/island9.png
+src/assets/combat/monster4/islands/island10.png
+src/assets/combat/monster4/islands/island11.png
+src/assets/combat/monster4/islands/island12.png
+src/assets/combat/monster4/islands/island13.png
+src/assets/combat/monster4/islands/island14.png
+src/assets/combat/monster4/islands/island15.png
+src/assets/combat/monster4/islands/island16.png
+src/assets/combat/monster4/islands/island17.png
+src/assets/combat/monster4/islands/island18.png
+src/assets/combat/monster4/islands/island19.png
+src/assets/combat/monster4/islands/island20.png
+src/assets/combat/monster4/islands/island21.png
+src/assets/combat/monster4/islands/island22.png
+src/assets/combat/monster4/islands/island23.png
+src/assets/combat/monster4/islands/island24.png
+src/assets/combat/monster4/islands/island25.png
+src/assets/combat/monster4/islands/island26.png
+src/assets/combat/monster4/islands/island27.png
+src/assets/combat/monster4/islands/island28.png
+src/assets/combat/monster4/islands/island29.png
+src/assets/combat/monster4/islands/island30.png
+src/assets/combat/monster4/islands/island31.png
