@@ -7,15 +7,13 @@ interface Props {
   onBack: () => void;
 }
 
-const ISLAND_ICONS = ['🏝️','⚔️','🌋','🏔️','🌊','🌙','🌟','🔥','🌿','💎','🗡️','🛡️','🧿','⚡','🌈','🎯','🦅','🌀','🏰','🌺','🦋','🔮','🌙','🌊','🎪','🦁','🌸','🎭','🏺','🌠','🎆'];
-
 const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
   const { currentPlayer, state } = useGame();
   if (!currentPlayer) return null;
 
   const planet = PLANETS.find(p => p.id === planetId);
 
-  const allIslands = [...ISLANDS, ...state.customIslands]
+  const allIslands = [...ISLANDS, ...(state.customIslands ?? [])]
     .filter(is => is.planetId === planetId)
     .sort((a, b) => a.id - b.id);
 
@@ -25,134 +23,168 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
 
   return (
     <div
-      className="min-h-screen relative p-4"
+      className="min-h-screen relative overflow-x-hidden"
       style={{
         backgroundImage: planet ? `url(${planet.image})` : undefined,
-        backgroundColor: '#0a0a1a',
-        backgroundSize: '35%',
-        backgroundPosition: 'center',
+        backgroundColor: '#060612',
+        backgroundSize: '30%',
+        backgroundPosition: 'center 20%',
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* dark overlay */}
+      {/* Starry dark overlay */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: `radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.85) 100%)` }}
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, rgba(3,3,18,0.92) 100%)',
+        }}
       />
 
-      <div className="relative z-10">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+      {/* Glowing planet-color ambient light */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at 50% 20%, ${pColor}18 0%, transparent 60%)`,
+        }}
+      />
+
+      <div className="relative z-10 pb-16">
+        {/* ── Header ── */}
+        <div className="flex items-center gap-4 p-4 md:p-6">
           <button
             onClick={() => { playSound('click'); onBack(); }}
-            className="px-4 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-white font-bold transition-all border border-slate-700 shadow-lg backdrop-blur-sm"
+            className="px-4 py-2.5 rounded-xl bg-black/60 hover:bg-black/80 text-white font-bold transition-all border border-white/10 shadow-lg backdrop-blur-sm text-sm"
           >
             ← الكواكب
           </button>
           <h2
-            className="text-3xl md:text-4xl font-black text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
-            style={{ color: pColor, textShadow: `0 0 30px ${pColor}99` }}
+            className="text-2xl md:text-4xl font-black text-white drop-shadow-lg"
+            style={{ color: pColor, textShadow: `0 0 30px ${pColor}bb` }}
           >
             جزر {planet?.name ?? ''}
           </h2>
         </div>
 
         {allIslands.length === 0 ? (
-          <div className="text-center text-white/60 mt-24 text-xl">
+          <div className="text-center text-white/50 mt-32 text-xl">
             لا توجد جزر في هذا الكوكب بعد
           </div>
         ) : (
-          <div className="flex flex-wrap justify-center gap-8 md:gap-12 max-w-6xl mx-auto pb-16">
+          <div className="flex flex-col items-center gap-0 px-4 mt-4">
             {allIslands.map((island, i) => {
-              const unlocked = unlockedIslandIds.includes(island.id);
-              const completed  = unlocked && i < unlockedIslandIds.length - 1;
-              const icon = ISLAND_ICONS[i % ISLAND_ICONS.length];
+              const unlocked  = unlockedIslandIds.includes(island.id);
+              const completed = unlocked && i < unlockedIslandIds.length - 1;
+
+              // Zig-zag: alternate right / center / left
+              const zigzagOffsets = ['translateX(35%)', 'translateX(0%)', 'translateX(-35%)'];
+              const offset = zigzagOffsets[i % 3];
+
+              // island images are 1-indexed
+              const imgUrl = `/src/assets/combat/monster4/islands/island${island.id + 1}.png`;
 
               return (
-                <button
+                <div
                   key={island.id}
-                  onClick={() => {
-                    if (unlocked) { playSound('click'); onSelectIsland(island.id); }
-                    else playSound('wrong');
-                  }}
-                  className={`relative flex flex-col items-center group transition-all duration-500 ${
-                    unlocked ? 'hover:scale-110 cursor-pointer' : 'opacity-50 cursor-not-allowed'
-                  }`}
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                  title={unlocked ? island.name : 'مقفلة — أكمل الجزيرة السابقة أولاً'}
+                  className="relative flex flex-col items-center"
+                  style={{ transform: offset, marginBottom: '-16px' }}
                 >
-                  {/* Island card body */}
-                  <div
-                    className="relative w-36 h-36 md:w-44 md:h-44 rounded-3xl flex flex-col items-center justify-center shadow-2xl border-2 transition-all duration-300"
-                    style={{
-                      background: unlocked
-                        ? `radial-gradient(135deg at 30% 30%, ${pColor}44 0%, ${pColor}22 60%, #0a0a1a 100%)`
-                        : 'radial-gradient(135deg at 30% 30%, #33333366 0%, #1a1a1a 100%)',
-                      borderColor: unlocked ? `${pColor}88` : '#ffffff22',
-                      boxShadow: unlocked
-                        ? `0 0 30px ${pColor}44, inset 0 0 20px ${pColor}11`
-                        : 'none',
+                  {/* Connecting path dot (not on first) */}
+                  {i > 0 && (
+                    <div
+                      className="w-1.5 h-10 rounded-full mb-1 opacity-40"
+                      style={{ background: pColor }}
+                    />
+                  )}
+
+                  <button
+                    onClick={() => {
+                      if (unlocked) { playSound('click'); onSelectIsland(island.id); }
+                      else playSound('wrong');
                     }}
+                    className={`relative group transition-all duration-300 ${
+                      unlocked
+                        ? 'hover:scale-110 cursor-pointer active:scale-95'
+                        : 'opacity-45 cursor-not-allowed grayscale'
+                    }`}
+                    title={unlocked ? island.name : 'مقفلة — أكمل الجزيرة السابقة أولاً'}
                   >
-                    {/* number badge */}
-                    <span
-                      className="absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2 shadow-lg"
+                    {/* Glow ring for unlocked */}
+                    {unlocked && (
+                      <div
+                        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md"
+                        style={{ background: `${pColor}55` }}
+                      />
+                    )}
+
+                    {/* Island image */}
+                    <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-2xl overflow-hidden border-2 shadow-2xl"
+                      style={{ borderColor: unlocked ? `${pColor}99` : '#ffffff22' }}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={island.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const el = e.currentTarget as HTMLImageElement;
+                          el.style.display = 'none';
+                          const parent = el.parentElement;
+                          if (parent) {
+                            parent.style.background = `radial-gradient(135deg, ${pColor}44, #0a0a1a)`;
+                          }
+                        }}
+                      />
+
+                      {/* Dark overlay on image */}
+                      <div className="absolute inset-0 bg-black/20" />
+
+                      {/* Lock icon */}
+                      {!unlocked && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                          <span className="text-4xl">🔒</span>
+                        </div>
+                      )}
+
+                      {/* Completed checkmark */}
+                      {completed && (
+                        <div className="absolute top-2 right-2 text-2xl drop-shadow-lg">✅</div>
+                      )}
+
+                      {/* Number badge */}
+                      <div
+                        className="absolute bottom-2 left-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-lg border"
+                        style={{
+                          background: unlocked ? pColor : '#444',
+                          borderColor: '#ffffff44',
+                          color: '#fff',
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                    </div>
+
+                    {/* Island name label */}
+                    <div
+                      className="mt-2 px-3 py-1 rounded-full text-center text-xs md:text-sm font-black text-white shadow-lg border backdrop-blur-sm"
                       style={{
-                        background: unlocked ? pColor : '#444',
-                        borderColor: unlocked ? `${pColor}cc` : '#666',
-                        color: '#fff',
+                        background: 'rgba(0,0,0,0.75)',
+                        borderColor: unlocked ? `${pColor}55` : '#ffffff11',
+                        maxWidth: '160px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                       }}
                     >
-                      {i + 1}
-                    </span>
+                      {island.name}
+                    </div>
 
-                    {/* completed badge */}
-                    {completed && (
-                      <span className="absolute -top-3 -left-3 text-2xl drop-shadow-lg">✅</span>
+                    {/* Question preview (unlocked only) */}
+                    {unlocked && (
+                      <p className="mt-0.5 text-[9px] text-white/40 max-w-[150px] text-center line-clamp-2 leading-tight">
+                        {island.question.text}
+                      </p>
                     )}
-
-                    {/* lock overlay */}
-                    {!unlocked ? (
-                      <span className="text-5xl">🔒</span>
-                    ) : (
-                      <>
-                        <span className="text-5xl md:text-6xl mb-1 drop-shadow-lg">{icon}</span>
-                        {/* mini terrain bumps */}
-                        <div className="flex gap-1 mt-1">
-                          {[...Array(3)].map((_, k) => (
-                            <div
-                              key={k}
-                              className="rounded-full"
-                              style={{
-                                width: 8 + k * 4,
-                                height: 6 + k * 2,
-                                background: `${pColor}66`,
-                              }}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Island name */}
-                  <span
-                    className="font-black text-white text-sm md:text-base mt-3 drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)] px-4 py-1.5 rounded-full border backdrop-blur-sm text-center max-w-[170px]"
-                    style={{
-                      background: 'rgba(0,0,0,0.65)',
-                      borderColor: unlocked ? `${pColor}55` : '#ffffff11',
-                    }}
-                  >
-                    {island.name}
-                  </span>
-
-                  {/* Question preview */}
-                  {unlocked && (
-                    <span className="mt-1 text-[10px] text-white/50 max-w-[160px] text-center leading-tight line-clamp-2">
-                      {island.question.text}
-                    </span>
-                  )}
-                </button>
+                  </button>
+                </div>
               );
             })}
           </div>
