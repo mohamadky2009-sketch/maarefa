@@ -1,10 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
 import { playSound, PLANETS, CHARACTERS } from '@/lib/gameState';
 import { PLANET_IMAGES } from '@/lib/constants';
 import ShopModal from './ShopModal';
 import Leaderboard from './Leaderboard';
-const goldBagsImg = '/src/assets/ui/gold-bags.png';
+
+// ==========================================
+// مكون صورة البطل المتحركة بجانب الاسم
+// ==========================================
+const CharacterAvatar = ({ charId }: { charId: string }) => {
+  const [frame, setFrame] = useState(0);
+  const character = CHARACTERS.find(c => c.id === charId);
+  
+  // الساحر (hero1) = 6 فريمات | الأسطوري (hero3) = 8 فريمات
+  const totalFrames = charId === 'hero3' ? 8 : 6;
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFrame((prev) => (prev + 1) % totalFrames);
+    }, 150);
+    return () => clearInterval(timer);
+  }, [totalFrames]);
+
+  if (!character) return null;
+
+  const positionX = (frame / (totalFrames - 1)) * 100;
+  const imagePath = character.folder === 'hero3' 
+    ? `/src/assets/combat/${character.folder}/Sprites/Idle.png` 
+    : `/src/assets/combat/${character.folder}/Idle.png`;
+
+  return (
+    <div className="w-14 h-14 md:w-20 md:h-20 overflow-hidden relative border-2 border-blue-500/30 rounded-2xl bg-black/40 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+       <div 
+          className="w-full h-full scale-[2.2]"
+          style={{
+            backgroundImage: `url('${imagePath}')`, 
+            backgroundSize: `${totalFrames * 100}% 100%`, 
+            backgroundPosition: `${positionX}% center`, 
+            backgroundRepeat: 'no-repeat',
+            imageRendering: 'pixelated'
+          }}
+        />
+    </div>
+  );
+};
 
 interface Props {
   onSelectPlanet: (id: number) => void;
@@ -14,7 +53,6 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
   const { currentPlayer, logout } = useGame();
   const [showShop, setShowShop] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  
   const [zoomingPlanet, setZoomingPlanet] = useState<number | null>(null);
 
   if (!currentPlayer) return null;
@@ -43,16 +81,16 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
   ];
 
   return (
-    // التعديل 1: خلفية داكنة صلبة (bg-[#050812]) وفوق الجميع (z-40) لحجب النجوم المزعجة
     <div className="min-h-screen relative p-4 overflow-x-hidden bg-[#050812] z-40">
       
-      {/* الشريط العلوي */}
-      <div className="relative z-50 flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 backdrop-blur-md border border-slate-700 rounded-2xl p-3 md:p-4 mb-6 shadow-xl">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl drop-shadow-md">{char?.emoji}</span>
+      {/* الشريط العلوي المحدث مع صورة الشخصية */}
+      <div className="relative z-50 flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 backdrop-blur-md border border-slate-700 rounded-3xl p-3 md:p-4 mb-6 shadow-2xl">
+        <div className="flex items-center gap-4">
+          {/* تم استبدال الإيموجي بالشخصية المتحركة */}
+          <CharacterAvatar charId={currentPlayer.characterId} />
           <div>
-            <p className="font-black text-white text-base md:text-lg">{currentPlayer.name}</p>
-            <p className="text-xs md:text-sm text-blue-300 font-bold">{char?.name}</p>
+            <p className="font-black text-white text-lg md:text-xl drop-shadow-lg">{currentPlayer.name}</p>
+            <p className="text-xs md:text-sm text-blue-400 font-bold uppercase tracking-widest">{char?.name}</p>
           </div>
         </div>
         
@@ -82,8 +120,6 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
           const isLeft = index % 2 === 0;
           const delay = index * 0.3;
           const isZooming = zoomingPlanet === planet.id;
-          
-          // التعديل 2: التحقق إذا كان الكوكب هو الشمس
           const isSun = planet.name === 'الشمس';
 
           return (
@@ -107,13 +143,11 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                 }`}
                 style={!isZooming ? { animation: `planet-orbit 6s ease-in-out ${delay}s infinite` } : {}}
               >
-                {/* الكوكب */}
                 <div className="relative flex justify-center items-center">
                   <div className={`absolute inset-0 rounded-full blur-[40px] transition-all duration-500 ${
                     unlocked ? 'bg-blue-500/30' : 'bg-transparent'
                   }`}></div>
 
-                  {/* إعطاء الشمس حجماً عملاقاً مقارنة بالكواكب الأخرى */}
                   <img
                     src={PLANET_IMAGES[planet.id]}
                     alt={planet.name}
@@ -134,7 +168,6 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                   )}
                 </div>
 
-                {/* اسم الكوكب والعبارة */}
                 <div className={`mt-4 flex flex-col items-center transition-opacity ${isZooming ? 'opacity-0' : 'opacity-100'}`}>
                   <span className={`font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-1 ${
                     isSun ? 'text-4xl md:text-5xl text-yellow-400' : 'text-2xl md:text-3xl text-white'
@@ -150,8 +183,8 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
           );
         })}
 
-        {/* الرسالة الختامية باسمك */}
-        <div className="relative z-20 mt-10 text-center p-8 md:p-10 max-w-3xl mx-4 mb-20">
+        {/* الرسالة الختامية */}
+        <div className="relative z-20 mt-10 text-center p-8 md:p-10 max-w-3xl mx-4 mb-20 bg-slate-900/40 rounded-3xl backdrop-blur-sm border border-white/5">
           <p className="text-2xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-100 to-orange-400 font-black mb-6 leading-relaxed drop-shadow-lg">
             لقد كانت رحلة مليئة بالمعرفة، شكراً لكم على زيارة لعبتي المتواضعة
           </p>

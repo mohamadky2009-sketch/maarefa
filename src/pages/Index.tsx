@@ -6,9 +6,9 @@ import PlanetMap from '@/components/PlanetMap';
 import IslandMap from '@/components/IslandMap';
 import BattleScreen from '@/components/BattleScreen';
 import AdminPanel from '@/components/AdminPanel';
-import { ISLANDS, PLANETS } from '@/lib/gameState';
+import { ISLANDS, PLANETS, playSound } from '@/lib/gameState';
 
-type Screen = 
+type Screen =
   | { type: 'entry' }
   | { type: 'admin' }
   | { type: 'planets' }
@@ -16,76 +16,100 @@ type Screen =
   | { type: 'battle'; planetId: number; islandId: number };
 
 const GameApp = () => {
-  const { currentPlayer, updatePlayer } = useGame();
+  const { currentPlayer, updatePlayer, state } = useGame();
   const [screen, setScreen] = useState<Screen>({ type: 'entry' });
 
-  // الانتقال التلقائي عند وجود لاعب مسجل
+  // Auto-advance to planets map if player already exists
   useEffect(() => {
     if (currentPlayer && screen.type === 'entry') {
       setScreen({ type: 'planets' });
     }
-  }, [currentPlayer, screen.type]);
+  }, [currentPlayer]);
 
+  // ----------------------------------------------------------------
+  // Victory handler
+  // ----------------------------------------------------------------
   const handleVictory = (planetId: number, islandId: number) => {
     if (!currentPlayer) return;
 
-    // جلب جزر الكوكب الحالي
-    const currentPlanetIslands = ISLANDS.filter(is => is.planetId === planetId);
-    const islandIndexInPlanet = currentPlanetIslands.findIndex(is => is.id === islandId);
-    const isLastIslandInPlanet = islandIndexInPlanet === currentPlanetIslands.length - 1;
+    playSound('victory');
+
+    // Collect all islands for this planet (static + admin-added)
+    const allIslands = [...ISLANDS, ...state.customIslands];
+    const planetIslands = allIslands
+      .filter(is => is.planetId === planetId)
+      .sort((a, b) => a.id - b.id);
+
+    const islandIndexInPlanet = planetIslands.findIndex(is => is.id === islandId);
+    const isLastIsland = islandIndexInPlanet === planetIslands.length - 1;
 
     let updatedPlanets = [...currentPlayer.unlockedPlanets];
     let updatedIslands = { ...currentPlayer.unlockedIslands };
 
-    if (isLastIslandInPlanet) {
-      // إذا ختم الكوكب، نفتح الكوكب التالي في الرحلة (نحو الشمس)
+    if (isLastIsland) {
+      // Planet completed — unlock the next planet
       const nextPlanetId = planetId + 1;
-      
+
       if (nextPlanetId < PLANETS.length) {
         if (!updatedPlanets.includes(nextPlanetId)) {
           updatedPlanets.push(nextPlanetId);
-          // فتح أول جزيرة في الكوكب الجديد
-          const firstIslandOfNextPlanet = ISLANDS.find(is => is.planetId === nextPlanetId);
-          if (firstIslandOfNextPlanet) {
-            updatedIslands[nextPlanetId] = [firstIslandOfNextPlanet.id];
+          const firstOfNext = allIslands
+            .filter(is => is.planetId === nextPlanetId)
+            .sort((a, b) => a.id - b.id)[0];
+          if (firstOfNext) {
+            updatedIslands[nextPlanetId] = [firstOfNext.id];
           }
         }
-        
+
         updatePlayer({
           ...currentPlayer,
           unlockedPlanets: updatedPlanets,
           unlockedIslands: updatedIslands,
-          gold: currentPlayer.gold + 100, // مكافأة ختم كوكب
+          gold: currentPlayer.gold + 100,
           hp: currentPlayer.maxHp,
         });
-        setScreen({ type: 'planets' }); // العودة للخريطة لاختيار الكوكب الجديد
+        setScreen({ type: 'planets' });
       } else {
-        // إذا ختم الشمس (آخر كوكب)
-        alert("تهانينا! لقد أنقذت المجرة ووصلت إلى قلب الشمس!");
+        // Final planet (Sun) completed — game won!
+        alert('تهانينا! لقد أنقذتَ المجرة ووصلتَ إلى قلب الشمس! 🌟');
+        updatePlayer({ ...currentPlayer, gold: currentPlayer.gold + 500, hp: currentPlayer.maxHp });
         setScreen({ type: 'planets' });
       }
-      
     } else {
-      // فتح الجزيرة التالية في نفس الكوكب
-      const nextIslandGlobalId = currentPlanetIslands[islandIndexInPlanet + 1].id;
-      if (!updatedIslands[planetId].includes(nextIslandGlobalId)) {
-        updatedIslands[planetId] = [...updatedIslands[planetId], nextIslandGlobalId];
+      // Unlock the next island in the same planet
+      const nextIsland = planetIslands[islandIndexInPlanet + 1];
+      const currentUnlocked = updatedIslands[planetId] ?? [];
+
+      if (!currentUnlocked.includes(nextIsland.id)) {
+        updatedIslands[planetId] = [...currentUnlocked, nextIsland.id];
       }
 
       updatePlayer({
         ...currentPlayer,
         unlockedIslands: updatedIslands,
-        gold: currentPlayer.gold + 30, // مكافأة جزيرة
+        gold: currentPlayer.gold + 30,
         hp: currentPlayer.maxHp,
       });
       setScreen({ type: 'islands', planetId });
     }
   };
 
+  // ----------------------------------------------------------------
+  // Defeat handler
+  // ----------------------------------------------------------------
+  const handleDefeat = (planetId: number) => {
+    if (!currentPlayer) return;
+    updatePlayer({ ...currentPlayer, hp: Math.max(0, currentPlayer.hp - 25) });
+    setScreen({ type: 'islands', planetId });
+  };
+
+  // ----------------------------------------------------------------
+  // Render
+  // ----------------------------------------------------------------
   return (
     <div className="min-h-screen relative overflow-hidden bg-black text-white">
       <StarField />
-      
+
       {screen.type === 'entry' && (
         <EntryScreen onAdmin={() => setScreen({ type: 'admin' })} />
       )}
@@ -110,8 +134,9 @@ const GameApp = () => {
         <BattleScreen
           planetId={screen.planetId}
           islandId={screen.islandId}
-          onBack={() => setScreen({ type: 'islands', planetId: screen.planetId })}
           onVictory={() => handleVictory(screen.planetId, screen.islandId)}
+          onDefeat={() => handleDefeat(screen.planetId)}
+          onBack={() => setScreen({ type: 'islands', planetId: screen.planetId })}
         />
       )}
     </div>
