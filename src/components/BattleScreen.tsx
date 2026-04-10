@@ -458,7 +458,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   // ── Charge distances (CSS) ─────────────────────────────────────────────────
   // Hero moves right toward monster; Monster moves left toward hero
-  const CHARGE_DIST = 'clamp(70px, 20vw, 280px)';
+  const CHARGE_DIST = 'clamp(40px, 12vw, 240px)';
   const heroChargeX  = (heroPos    === 'charging' || heroPos    === 'atEnemy')
     ? `translateX(${CHARGE_DIST})`  : 'translateX(0)';
   const monChargeX   = (monsterPos === 'charging' || monsterPos === 'atEnemy')
@@ -495,9 +495,12 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   return (
     <div
       dir="ltr"
-      className="relative w-full overflow-hidden bg-black"
+      className="relative w-full bg-black"
       style={{
         minHeight: '100dvh',
+        maxWidth: '100vw',
+        overflowX: 'hidden',
+        overflowY: 'hidden',
         animation: screenShake ? 'bsShake 0.38s ease both' : 'none',
       }}
     >
@@ -515,7 +518,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       )}
 
       {/* ══════ HP BARS ══════════════════════════════════════════════════════ */}
-      <div className="relative z-20 w-full max-w-6xl mx-auto flex items-center gap-2 px-2 pt-2 pb-1 sm:gap-3 sm:px-4 sm:pt-3">
+      <div className="relative z-20 w-full max-w-6xl mx-auto flex items-center gap-1 px-2 pt-1.5 pb-0.5 sm:gap-3 sm:px-4 sm:pt-3">
 
         {/* Hero bar */}
         <div className="flex-1 min-w-0">
@@ -529,7 +532,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           </div>
           <div className="relative rounded-full overflow-hidden"
             style={{
-              height: 'clamp(12px,3.5vw,20px)',
+              height: 'clamp(8px,2.8vw,20px)',
               background: 'linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 50%,#0d0d0d 100%)',
               border: `1px solid ${heroBarColor}55`,
               boxShadow: `0 0 12px ${heroBarColor}44, inset 0 1px 0 rgba(255,255,255,0.07)`,
@@ -568,7 +571,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           </div>
           <div className="relative rounded-full overflow-hidden"
             style={{
-              height: 'clamp(12px,3.5vw,20px)',
+              height: 'clamp(8px,2.8vw,20px)',
               background: 'linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 50%,#0d0d0d 100%)',
               border: `1px solid ${monBarColor}55`,
               boxShadow: `0 0 12px ${monBarColor}44, inset 0 1px 0 rgba(255,255,255,0.07)`,
@@ -593,9 +596,9 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
       {/* ══════ BATTLE ARENA — absolute character positions ═══════════════════ */}
       <div
-        className="relative z-10 w-full transition-transform duration-500"
+        className="relative z-10 w-full transition-transform duration-500 overflow-hidden"
         style={{
-          height: 'clamp(200px, 42vh, 380px)',
+          height: 'clamp(140px, 32vh, 360px)',
           transform: cameraZoom ? 'scale(1.07)' : 'scale(1)',
           transformOrigin: 'center bottom',
         }}
@@ -748,7 +751,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       </AnimatePresence>
 
       {/* ══════ QUESTION PANEL — Glassmorphism ═══════════════════════════════ */}
-      <div className="relative z-20 w-full max-w-5xl mx-auto px-2 pb-2 mt-auto">
+      <div className="relative z-20 w-full max-w-5xl mx-auto px-1.5 pb-1.5 mt-auto sm:px-3 sm:pb-3">
         <div
           className="relative rounded-2xl overflow-hidden"
           style={{
@@ -783,18 +786,18 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             }} />
           ))}
 
-          <div className="p-3 sm:p-4 md:p-6">
+          <div className="p-2 sm:p-4 md:p-6">
             {/* Question */}
             <p
-              className="text-center font-bold text-white mb-3 leading-relaxed"
+              className="text-center font-bold text-white mb-2 leading-snug"
               dir="rtl"
-              style={{ fontSize: 'clamp(0.72rem,2.8vw,1.05rem)', textShadow: '0 0 18px rgba(6,182,212,0.25)' }}
+              style={{ fontSize: 'clamp(0.72rem,3.8vw,1.05rem)', textShadow: '0 0 18px rgba(6,182,212,0.25)' }}
             >
               {island.question.text}
             </p>
 
             {/* Options */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
               {island.question.options.map((opt, i) => (
                 <button
                   key={i}
@@ -803,8 +806,8 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
                   dir="rtl"
                   className="group relative rounded-xl text-right font-bold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 overflow-hidden"
                   style={{
-                    padding: 'clamp(9px,2.5vw,16px) clamp(10px,3vw,18px)',
-                    fontSize: 'clamp(0.65rem,2.2vw,0.9rem)',
+                    padding: 'clamp(7px,2.2vw,16px) clamp(8px,2.5vw,18px)',
+                    fontSize: 'clamp(0.68rem,3.5vw,0.9rem)',
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(6,182,212,0.14)',
                   }}
@@ -874,13 +877,13 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
       {/* ── CSS: sprite scale breakpoints + keyframes ── */}
       <style>{`
-        :root { --sprite-scale: 0.78; }
-        @media (min-width:  380px) { :root { --sprite-scale: 0.88; } }
-        @media (min-width:  480px) { :root { --sprite-scale: 0.96; } }
-        @media (min-width:  640px) { :root { --sprite-scale: 1.05; } }
-        @media (min-width:  768px) { :root { --sprite-scale: 1.18; } }
-        @media (min-width: 1024px) { :root { --sprite-scale: 1.35; } }
-        @media (min-width: 1280px) { :root { --sprite-scale: 1.5;  } }
+        :root { --sprite-scale: 0.42; }
+        @media (min-width:  380px) { :root { --sprite-scale: 0.48; } }
+        @media (min-width:  480px) { :root { --sprite-scale: 0.56; } }
+        @media (min-width:  640px) { :root { --sprite-scale: 0.72; } }
+        @media (min-width:  768px) { :root { --sprite-scale: 0.90; } }
+        @media (min-width: 1024px) { :root { --sprite-scale: 1.15; } }
+        @media (min-width: 1280px) { :root { --sprite-scale: 1.35; } }
 
         @keyframes bsBgZoom {
           0%   { transform:scale(1.12) translate(0%,0%); }
