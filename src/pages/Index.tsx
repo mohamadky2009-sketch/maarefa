@@ -8,7 +8,7 @@ import BattleScreen from '@/components/BattleScreen';
 import AdminPanel from '@/components/AdminPanel';
 import { ISLANDS, PLANETS } from '@/lib/gameState';
 
-type Screen = 
+type Screen =
   | { type: 'entry' }
   | { type: 'scroll' }
   | { type: 'admin' }
@@ -20,52 +20,40 @@ const GameApp = () => {
   const { currentPlayer, updatePlayer } = useGame();
   const [screen, setScreen] = useState<Screen>({ type: 'entry' });
 
+  // Auto-advance past entry for already-logged-in players
   useEffect(() => {
     if (currentPlayer && screen.type === 'entry') {
       setScreen({ type: 'planets' });
     }
   }, [currentPlayer, screen.type]);
 
+  const goHome = () => setScreen({ type: 'scroll' });
+
   const handleVictory = (planetId: number, islandId: number) => {
     if (!currentPlayer) return;
-
     const currentPlanetIslands = ISLANDS.filter(is => is.planetId === planetId);
-    const islandIndexInPlanet = currentPlanetIslands.findIndex(is => is.id === islandId);
-    const isLastIslandInPlanet = islandIndexInPlanet === currentPlanetIslands.length - 1;
+    const islandIndexInPlanet  = currentPlanetIslands.findIndex(is => is.id === islandId);
+    const isLastIsland         = islandIndexInPlanet === currentPlanetIslands.length - 1;
 
     let updatedPlanets = [...currentPlayer.unlockedPlanets];
     let updatedIslands = { ...currentPlayer.unlockedIslands };
 
-    if (isLastIslandInPlanet) {
+    if (isLastIsland) {
       const nextPlanetId = planetId + 1;
       if (nextPlanetId < PLANETS.length) {
         if (!updatedPlanets.includes(nextPlanetId)) {
           updatedPlanets.push(nextPlanetId);
-          const firstIslandOfNextPlanet = ISLANDS.find(is => is.planetId === nextPlanetId);
-          if (firstIslandOfNextPlanet) {
-            updatedIslands[nextPlanetId] = [firstIslandOfNextPlanet.id];
-          }
+          const firstIsland = ISLANDS.find(is => is.planetId === nextPlanetId);
+          if (firstIsland) updatedIslands[nextPlanetId] = [firstIsland.id];
         }
-        updatePlayer({
-          ...currentPlayer,
-          unlockedPlanets: updatedPlanets,
-          unlockedIslands: updatedIslands,
-          gold: currentPlayer.gold + 100,
-          hp: currentPlayer.maxHp,
-        });
+        updatePlayer({ ...currentPlayer, unlockedPlanets: updatedPlanets, unlockedIslands: updatedIslands, gold: currentPlayer.gold + 100, hp: currentPlayer.maxHp });
         setScreen({ type: 'planets' });
       }
     } else {
-      const nextIslandGlobalId = currentPlanetIslands[islandIndexInPlanet + 1].id;
-      if (!updatedIslands[planetId].includes(nextIslandGlobalId)) {
-        updatedIslands[planetId] = [...updatedIslands[planetId], nextIslandGlobalId];
-      }
-      updatePlayer({
-        ...currentPlayer,
-        unlockedIslands: updatedIslands,
-        gold: currentPlayer.gold + 30,
-        hp: currentPlayer.maxHp,
-      });
+      const nextIslandId = currentPlanetIslands[islandIndexInPlanet + 1].id;
+      if (!updatedIslands[planetId].includes(nextIslandId))
+        updatedIslands[planetId] = [...updatedIslands[planetId], nextIslandId];
+      updatePlayer({ ...currentPlayer, unlockedIslands: updatedIslands, gold: currentPlayer.gold + 30, hp: currentPlayer.maxHp });
       setScreen({ type: 'islands', planetId });
     }
   };
@@ -73,13 +61,13 @@ const GameApp = () => {
   return (
     <div className="min-h-screen relative overflow-hidden bg-black text-white">
       {(screen.type === 'entry' || screen.type === 'scroll') && <StarField />}
-      
+
+      {/* First-time entry (registration) */}
       {screen.type === 'entry' && (
-        <EntryScreen
-          onAdmin={() => setScreen({ type: 'admin' })}
-        />
+        <EntryScreen onAdmin={() => setScreen({ type: 'admin' })} />
       )}
 
+      {/* Returning player — scroll home screen */}
       {screen.type === 'scroll' && (
         <EntryScreen
           loggedIn
@@ -93,14 +81,14 @@ const GameApp = () => {
       )}
 
       {screen.type === 'planets' && (
-        <PlanetMap onSelectPlanet={(id) => setScreen({ type: 'islands', planetId: id })} />
+        <PlanetMap onSelectPlanet={id => setScreen({ type: 'islands', planetId: id })} />
       )}
 
       {screen.type === 'islands' && (
         <IslandMap
           planetId={screen.planetId}
-          onSelectIsland={(id) => setScreen({ type: 'battle', planetId: screen.planetId, islandId: id })}
-          onBack={() => setScreen({ type: 'scroll' })}
+          onSelectIsland={id => setScreen({ type: 'battle', planetId: screen.planetId, islandId: id })}
+          onBack={goHome}          /* ← Island Map back → Home Scroll */
         />
       )}
 
@@ -108,11 +96,9 @@ const GameApp = () => {
         <BattleScreen
           planetId={screen.planetId}
           islandId={screen.islandId}
-          onBack={() => setScreen({ type: 'islands', planetId: screen.planetId })}
+          onBack={goHome}          /* ← Battle exit → Home Scroll */
           onVictory={() => handleVictory(screen.planetId, screen.islandId)}
-          onDefeat={() => {
-            setScreen({ type: 'islands', planetId: screen.planetId });
-          }}
+          onDefeat={goHome}        /* ← Defeat → Home Scroll */
         />
       )}
     </div>

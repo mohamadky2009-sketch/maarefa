@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '@/context/GameContext';
 import { ISLANDS, CHARACTERS } from '@/lib/gameState';
 
@@ -6,8 +7,8 @@ import { ISLANDS, CHARACTERS } from '@/lib/gameState';
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 interface Props {
-  planetId: number;
-  islandId: number;
+  planetId:  number;
+  islandId:  number;
   onBack:    () => void;
   onVictory: () => void;
   onDefeat:  () => void;
@@ -58,18 +59,18 @@ interface HeroConfig {
 const HERO_CONFIGS: Record<string, HeroConfig> = {
   hero1: {
     facesRight: true, frameH: 190,
-    frames:  { idle: 7,  run: 10, attack: 10, attack2: 10, hurt: 5,  death: 9  },
-    sheetW:  { idle: 1386, run: 1848, attack: 1848, attack2: 1848, hurt: 924, death: 1617 },
+    frames: { idle: 7,  run: 10, attack: 10, attack2: 10, hurt: 5,  death: 9  },
+    sheetW: { idle: 1386, run: 1848, attack: 1848, attack2: 1848, hurt: 924, death: 1617 },
   },
   hero2: {
     facesRight: true, frameH: 155,
-    frames:  { idle: 6,  run: 8,  attack: 6,  attack2: 6,  hurt: 4,  death: 11 },
-    sheetW:  { idle: 930, run: 1240, attack: 930, attack2: 930, hurt: 620, death: 1705 },
+    frames: { idle: 6,  run: 8,  attack: 6,  attack2: 6,  hurt: 4,  death: 11 },
+    sheetW: { idle: 930, run: 1240, attack: 930, attack2: 930, hurt: 620, death: 1705 },
   },
   hero3: {
     facesRight: true, frameH: 200,
-    frames:  { idle: 8,  run: 8,  attack: 6,  attack2: 6,  hurt: 4,  death: 6  },
-    sheetW:  { idle: 1600, run: 1600, attack: 1200, attack2: 1200, hurt: 800, death: 1200 },
+    frames: { idle: 8,  run: 8,  attack: 6,  attack2: 6,  hurt: 4,  death: 6  },
+    sheetW: { idle: 1600, run: 1600, attack: 1200, attack2: 1200, hurt: 800, death: 1200 },
   },
 };
 
@@ -83,7 +84,6 @@ interface MonsterConfig {
   sheetW:     Record<ActionState, number>;
 }
 
-// Monster2 uses individual files (140×93 each), so sheetW is not used the same way
 const MONSTER2_FRAME_W = 140;
 const MONSTER2_FRAME_H = 93;
 
@@ -140,11 +140,11 @@ function preloadImage(src: string): Promise<void> {
 
 function buildPreloadList(heroFolder: string, monster: MonsterConfig, bgUrl: string): string[] {
   const paths = [bgUrl];
-  const all: ActionState[] = ['idle','run','attack','attack2','hurt','death'];
+  const all: ActionState[] = ['idle', 'run', 'attack', 'attack2', 'hurt', 'death'];
   all.forEach(a => paths.push(getSpritePath(heroFolder, 'sheet', a, 1)));
   if (monster.type === 'individual') {
-    const sets: [string,number][] = [['Idle',6],['Attack',10],['Cast',9],['Hurt',3],['Death',10]];
-    sets.forEach(([n,c]) => { for (let i=1;i<=c;i++) paths.push(`/src/assets/combat/monster2/Individual Sprite/${n}/Bringer-of-Death_${n}_${i}.png`); });
+    const sets: [string, number][] = [['Idle', 6], ['Attack', 10], ['Cast', 9], ['Hurt', 3], ['Death', 10]];
+    sets.forEach(([n, c]) => { for (let i = 1; i <= c; i++) paths.push(`/src/assets/combat/monster2/Individual Sprite/${n}/Bringer-of-Death_${n}_${i}.png`); });
   } else {
     all.forEach(a => paths.push(getSpritePath(monster.folder, 'sheet', a, 1)));
   }
@@ -152,19 +152,17 @@ function buildPreloadList(heroFolder: string, monster: MonsterConfig, bgUrl: str
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DynamicSprite  —  PIXEL-PERFECT sprite sheet rendering
+// DynamicSprite  —  PIXEL-PERFECT sprite sheet rendering — DO NOT MODIFY
 //
 //  Scale formula: scale = DISPLAY_H / frameH
-//  bgW  = sheetW * scale  (total background image width in px)
-//  bgH  = frameH * scale  = DISPLAY_H
-//  bgX  = -(frame-1) * frameW * scale  (pixel offset, exact, no percentage rounding)
+//  bgW  = sheetW * scale
+//  bgX  = -(frame-1) * frameW * scale  (pixel offset — no % rounding)
 //
 //  Flip formula: scaleX = (isHero === (facesRight !== flipped)) ? 1 : -1
-//    • Hero on LEFT  must appear facing RIGHT (+X toward monster)
-//    • Monster on RIGHT must appear facing LEFT  (-X toward hero)
-//    • facesRight = the sprite image's NATURAL facing direction
+//    • Hero on LEFT  must appear facing RIGHT
+//    • Monster on RIGHT must appear facing LEFT
 // ─────────────────────────────────────────────────────────────────────────────
-const DISPLAY_H = 256; // logical display height in px (scaled up by CSS for larger screens)
+const DISPLAY_H = 256;
 
 interface SpriteProps {
   folder:     string;
@@ -191,17 +189,14 @@ const DynamicSprite = memo(({
     return () => clearInterval(id);
   }, [action, frameCount]);
 
-  // scaleX: +1 = sprite shown as-is, -1 = horizontally mirrored
-  // Heroes must face RIGHT in arena; Monsters must face LEFT.
-  const scaleX = (isHero === (facesRight !== flipped)) ? 1 : -1;
-
+  const scaleX     = (isHero === (facesRight !== flipped)) ? 1 : -1;
   const hurtFilter = isHurt ? 'brightness(10) saturate(0)' : 'none';
 
   // ── Individual sprite (monster2) ──────────────────────────────────────────
   if (type === 'individual') {
-    const src = getSpritePath(folder, type, action, frame);
+    const src   = getSpritePath(folder, type, action, frame);
     const scale = DISPLAY_H / MONSTER2_FRAME_H;
-    const dW = MONSTER2_FRAME_W * scale;
+    const dW    = MONSTER2_FRAME_W * scale;
     return (
       <div style={{
         width: dW, height: DISPLAY_H,
@@ -217,13 +212,13 @@ const DynamicSprite = memo(({
     );
   }
 
-  // ── Sprite sheet (all others) — PIXEL-PERFECT ─────────────────────────────
-  const src    = getSpritePath(folder, type, action, frame);
-  const scale  = DISPLAY_H / frameH;
-  const frameW = sheetW / frameCount;              // exact frame width (px, original)
-  const dFrameW = frameW * scale;                  // displayed frame width (px)
-  const dSheetW = sheetW * scale;                  // displayed full sheet width (px)
-  const bgX     = -((frame - 1) * dFrameW);        // pixel offset — no percentage rounding errors
+  // ── Sprite sheet — PIXEL-PERFECT ──────────────────────────────────────────
+  const src     = getSpritePath(folder, type, action, frame);
+  const scale   = DISPLAY_H / frameH;
+  const frameW  = sheetW / frameCount;
+  const dFrameW = frameW * scale;
+  const dSheetW = sheetW * scale;
+  const bgX     = -((frame - 1) * dFrameW);
 
   return (
     <div style={{
@@ -251,7 +246,8 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   const heroData   = CHARACTERS.find(c => c.id === currentPlayer?.characterId);
   const monster    = useMemo(() => MONSTER_CONFIGS[islandId % 4], [islandId]);
   const heroConfig = useMemo<HeroConfig>(
-    () => HERO_CONFIGS[heroData?.folder ?? 'hero1'] ?? HERO_CONFIGS['hero1'], [heroData],
+    () => HERO_CONFIGS[heroData?.folder ?? 'hero1'] ?? HERO_CONFIGS['hero1'],
+    [heroData],
   );
   const bgUrl = `/src/assets/combat/monster4/islands/island${islandId + 1}.png`;
 
@@ -270,36 +266,36 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   const [monsterHPGhost, setMonsterHPGhost] = useState(100);
 
   // ── Animation state ────────────────────────────────────────────────────────
-  const [heroAction,    setHeroAction]    = useState<ActionState>('idle');
-  const [monsterAction, setMonsterAction] = useState<ActionState>('idle');
-  const [heroPos,       setHeroPos]       = useState<CharPos>('home');
-  const [monsterPos,    setMonsterPos]    = useState<CharPos>('home');
-  const [heroFlipped,   setHeroFlipped]   = useState(false);
-  const [monsterFlipped,setMonsterFlipped]= useState(false);
-  const [attackVar,     setAttackVar]     = useState<'attack'|'attack2'>('attack');
-  const [heroHurt,      setHeroHurt]      = useState(false);
-  const [monsterHurt,   setMonsterHurt]   = useState(false);
+  const [heroAction,     setHeroAction]     = useState<ActionState>('idle');
+  const [monsterAction,  setMonsterAction]  = useState<ActionState>('idle');
+  const [heroPos,        setHeroPos]        = useState<CharPos>('home');
+  const [monsterPos,     setMonsterPos]     = useState<CharPos>('home');
+  const [heroFlipped,    setHeroFlipped]    = useState(false);
+  const [monsterFlipped, setMonsterFlipped] = useState(false);
+  const [attackVar,      setAttackVar]      = useState<'attack' | 'attack2'>('attack');
+  const [heroHurt,       setHeroHurt]       = useState(false);
+  const [monsterHurt,    setMonsterHurt]    = useState(false);
 
   // ── VFX ────────────────────────────────────────────────────────────────────
-  const [showResult,    setShowResult]    = useState<'none'|'correct'|'wrong'>('none');
-  const [showImpact,    setShowImpact]    = useState(false);
-  const [showWhiteFlash,setShowWhiteFlash]= useState(false);
-  const [cameraZoom,    setCameraZoom]    = useState(false);
-  const [screenShake,   setScreenShake]  = useState(false);
-  const [gameResult,    setGameResult]   = useState<GameResult>('none');
+  const [showResult,     setShowResult]     = useState<'none' | 'correct' | 'wrong'>('none');
+  const [showImpact,     setShowImpact]     = useState(false);
+  const [showWhiteFlash, setShowWhiteFlash] = useState(false);
+  const [cameraZoom,     setCameraZoom]     = useState(false);
+  const [screenShake,    setScreenShake]    = useState(false);
+  const [gameResult,     setGameResult]     = useState<GameResult>('none');
 
   // ── Floating damage numbers ────────────────────────────────────────────────
   const [floatNums, setFloatNums] = useState<FloatNum[]>([]);
   const floatId = useRef(0);
-  const spawnFloat = useCallback((value: number, target: 'hero'|'monster') => {
+  const spawnFloat = useCallback((value: number, target: 'hero' | 'monster') => {
     const id = ++floatId.current;
     setFloatNums(prev => [...prev, { id, value, target }]);
     setTimeout(() => setFloatNums(prev => prev.filter(f => f.id !== id)), 1200);
   }, []);
 
   // ── Combo ──────────────────────────────────────────────────────────────────
-  const [combo, setCombo] = useState(0);
-  const [showCombo, setShowCombo] = useState(false);
+  const [combo,      setCombo]      = useState(0);
+  const [showCombo,  setShowCombo]  = useState(false);
   const comboTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
@@ -317,8 +313,8 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   }, []);
   useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
 
-  // ── Ghost HP ───────────────────────────────────────────────────────────────
-  useEffect(() => { const t = setTimeout(() => setHeroHPGhost(heroHP),      900); return () => clearTimeout(t); }, [heroHP]);
+  // ── Ghost HP delay ─────────────────────────────────────────────────────────
+  useEffect(() => { const t = setTimeout(() => setHeroHPGhost(heroHP),       900); return () => clearTimeout(t); }, [heroHP]);
   useEffect(() => { const t = setTimeout(() => setMonsterHPGhost(monsterHP), 900); return () => clearTimeout(t); }, [monsterHP]);
 
   // ── Death detection ────────────────────────────────────────────────────────
@@ -345,13 +341,13 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-5">
         <div className="text-5xl animate-pulse">⚔️</div>
-        <p className="text-white/70 text-lg font-bold tracking-widest">جاري تحميل المعركة…</p>
+        <p className="text-white/70 text-base font-bold tracking-widest">جاري تحميل المعركة…</p>
         <div className="flex gap-2">
-          {[0,1,2].map(i => (
-            <div key={i} className="w-3 h-3 rounded-full bg-cyan-400"
-              style={{ animation: `pulse 1s ${i*0.2}s ease-in-out infinite` }} />
+          {[0, 1, 2].map(i => (
+            <div key={i} className="w-2.5 h-2.5 rounded-full bg-cyan-400"
+              style={{ animation: `pulse 1s ${i * 0.2}s ease-in-out infinite` }} />
           ))}
         </div>
       </div>
@@ -411,10 +407,10 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       spawnFloat(dmg, 'monster');
     }, CHARGE_MS + halfAtk);
 
-    addTimer(() => setShowWhiteFlash(false),                             CHARGE_MS + halfAtk + 70);
-    addTimer(() => { setShowImpact(false); setScreenShake(false); },     CHARGE_MS + halfAtk + 220);
-    addTimer(() => setMonsterHurt(false),                                CHARGE_MS + halfAtk + 300);
-    addTimer(() => setCameraZoom(false),                                  CHARGE_MS + halfAtk + 400);
+    addTimer(() => setShowWhiteFlash(false),                           CHARGE_MS + halfAtk + 70);
+    addTimer(() => { setShowImpact(false); setScreenShake(false); },   CHARGE_MS + halfAtk + 220);
+    addTimer(() => setMonsterHurt(false),                              CHARGE_MS + halfAtk + 300);
+    addTimer(() => setCameraZoom(false),                               CHARGE_MS + halfAtk + 400);
 
     const retreatAt = CHARGE_MS + Math.max(atkMs, halfAtk + hurtMs);
     addTimer(() => { setHeroAction('run'); setHeroFlipped(true); setHeroPos('returning'); }, retreatAt);
@@ -448,9 +444,9 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       spawnFloat(dmg, 'hero');
     }, CHARGE_MS + halfAtk);
 
-    addTimer(() => setShowWhiteFlash(false),     CHARGE_MS + halfAtk + 70);
-    addTimer(() => setScreenShake(false),         CHARGE_MS + halfAtk + 220);
-    addTimer(() => setHeroHurt(false),            CHARGE_MS + halfAtk + 300);
+    addTimer(() => setShowWhiteFlash(false), CHARGE_MS + halfAtk + 70);
+    addTimer(() => setScreenShake(false),    CHARGE_MS + halfAtk + 220);
+    addTimer(() => setHeroHurt(false),       CHARGE_MS + halfAtk + 300);
 
     const retreatAt = CHARGE_MS + Math.max(atkMs, halfAtk + hurtMs);
     addTimer(() => { setMonsterAction('run'); setMonsterFlipped(true); setMonsterPos('returning'); }, retreatAt);
@@ -460,12 +456,15 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
     }, retreatAt + RETURN_MS);
   };
 
-  // ── Position → CSS ─────────────────────────────────────────────────────────
-  const CHARGE_DIST = 'clamp(80px,22vw,320px)';
-  const heroTransX = (heroPos === 'charging' || heroPos === 'atEnemy') ? `translateX(${CHARGE_DIST})` : 'translateX(0)';
-  const heroMoveDur = heroPos === 'charging' ? CHARGE_MS : heroPos === 'returning' ? RETURN_MS : 0;
-  const monTransX  = (monsterPos === 'charging' || monsterPos === 'atEnemy') ? `translateX(-${CHARGE_DIST})` : 'translateX(0)';
-  const monMoveDur = monsterPos === 'charging' ? CHARGE_MS : monsterPos === 'returning' ? RETURN_MS : 0;
+  // ── Charge distances (CSS) ─────────────────────────────────────────────────
+  // Hero moves right toward monster; Monster moves left toward hero
+  const CHARGE_DIST = 'clamp(70px, 20vw, 280px)';
+  const heroChargeX  = (heroPos    === 'charging' || heroPos    === 'atEnemy')
+    ? `translateX(${CHARGE_DIST})`  : 'translateX(0)';
+  const monChargeX   = (monsterPos === 'charging' || monsterPos === 'atEnemy')
+    ? `translateX(calc(-1 * ${CHARGE_DIST}))` : 'translateX(0)';
+  const heroMoveDur  = heroPos    === 'charging' ? CHARGE_MS : heroPos    === 'returning' ? RETURN_MS : 0;
+  const monMoveDur   = monsterPos === 'charging' ? CHARGE_MS : monsterPos === 'returning' ? RETURN_MS : 0;
 
   // HP colors
   const heroPct      = heroHP / 100;
@@ -476,187 +475,215 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   const accuracy = correctAnswers + wrongAnswers > 0
     ? Math.round(correctAnswers / (correctAnswers + wrongAnswers) * 100) : 0;
 
+  // ── Framer-motion variants ─────────────────────────────────────────────────
+  // Idle: gentle Y-axis breathing (5px)
+  const idleBreath = {
+    animate: { y: [0, -5, 0] },
+    transition: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' as const },
+  };
+  // Hurt: rapid X shake
+  const hurtShake = {
+    animate: { x: [-7, 7, -6, 6, -4, 4, -2, 0] },
+    transition: { duration: 0.35, ease: 'linear' as const },
+  };
+  // Idle-stop: snap back to 0
+  const idleStop = { animate: { y: 0 }, transition: { duration: 0.15 } };
+
+  const heroMotion    = heroHurt    ? hurtShake : heroAction    === 'idle' ? idleBreath : idleStop;
+  const monsterMotion = monsterHurt ? hurtShake : monsterAction === 'idle' ? idleBreath : idleStop;
+
   return (
-    <div dir="ltr"
-      className="relative min-h-screen flex flex-col items-center justify-between overflow-hidden"
-      style={screenShake ? { animation: 'bsShake 0.38s ease both' } : undefined}
+    <div
+      dir="ltr"
+      className="relative w-full overflow-hidden bg-black"
+      style={{
+        minHeight: '100dvh',
+        animation: screenShake ? 'bsShake 0.38s ease both' : 'none',
+      }}
     >
-      {/* Background */}
+      {/* ── Background ── */}
       <div className="absolute inset-0 bg-center bg-cover"
-        style={{ backgroundImage:`url('${bgUrl}')`, animation:'bsBgZoom 24s ease-in-out infinite alternate', transform:'scale(1.12)' }} />
+        style={{ backgroundImage: `url('${bgUrl}')`, animation: 'bsBgZoom 24s ease-in-out infinite alternate', transform: 'scale(1.12)' }} />
       <div className="absolute inset-0 bg-black/60" />
-
-      {/* Vignette */}
       <div className="absolute inset-0 pointer-events-none transition-all duration-500"
-        style={{ boxShadow: cameraZoom ? 'inset 0 0 220px rgba(0,0,0,0.88)' : 'inset 0 0 90px rgba(0,0,0,0.42)' }} />
+        style={{ boxShadow: cameraZoom ? 'inset 0 0 220px rgba(0,0,0,0.88)' : 'inset 0 0 80px rgba(0,0,0,0.4)' }} />
 
-      {/* Full-screen white hit flash */}
+      {/* ── Hit Flash ── */}
       {showWhiteFlash && (
         <div className="fixed inset-0 z-40 pointer-events-none"
-          style={{ background:'rgba(255,255,255,0.48)', animation:'bsWhiteFlash 0.1s ease forwards' }} />
+          style={{ background: 'rgba(255,255,255,0.44)', animation: 'bsWhiteFlash 0.12s ease forwards' }} />
       )}
 
-      {/* ════ HP BARS ═════════════════════════════════════════════════════════ */}
-      <div className="relative z-20 w-full max-w-6xl flex items-center gap-2 px-2 pt-2 pb-1 md:gap-4 md:px-5 md:pt-4 md:pb-2">
+      {/* ══════ HP BARS ══════════════════════════════════════════════════════ */}
+      <div className="relative z-20 w-full max-w-6xl mx-auto flex items-center gap-2 px-2 pt-2 pb-1 sm:gap-3 sm:px-4 sm:pt-3">
 
         {/* Hero bar */}
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center mb-1">
-            <span className="font-black text-[10px] sm:text-xs md:text-sm truncate"
-              style={{ color:'#67e8f9', textShadow:'0 0 10px rgba(6,182,212,1)' }}>
+          <div className="flex justify-between items-center mb-0.5">
+            <span className="font-black truncate" style={{ fontSize: 'clamp(9px,2.5vw,13px)', color: '#67e8f9', textShadow: '0 0 10px #06b6d4' }}>
               {currentPlayer.name}
             </span>
-            <span className="font-mono text-[10px] sm:text-xs tabular-nums shrink-0 ml-1" style={{ color: heroBarColor }}>
+            <span className="font-mono tabular-nums shrink-0 ml-1" style={{ fontSize: 'clamp(9px,2.5vw,12px)', color: heroBarColor }}>
               {heroHP}<span className="text-white/30">/100</span>
             </span>
           </div>
-          {/* Metallic bar track */}
-          <div className="relative h-4 sm:h-5 rounded-full overflow-hidden"
+          <div className="relative rounded-full overflow-hidden"
             style={{
-              background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 40%, #111 100%)',
-              border: `1px solid ${heroBarColor}66`,
-              boxShadow: `0 0 14px ${heroBarColor}44, inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.5)`,
+              height: 'clamp(12px,3.5vw,20px)',
+              background: 'linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 50%,#0d0d0d 100%)',
+              border: `1px solid ${heroBarColor}55`,
+              boxShadow: `0 0 12px ${heroBarColor}44, inset 0 1px 0 rgba(255,255,255,0.07)`,
               animation: heroHP < 30 ? 'bsCritPulse 0.7s ease-in-out infinite' : 'none',
             }}>
-            {/* Ghost layer */}
+            {/* Ghost */}
             <div className="absolute inset-y-0 left-0 rounded-full"
-              style={{
-                width:`${heroHPGhost}%`,
-                background: 'rgba(255,255,255,0.14)',
-                transition:'width 900ms cubic-bezier(0.4,0,0.2,1)',
-              }} />
-            {/* Live bar */}
+              style={{ width: `${heroHPGhost}%`, background: 'rgba(255,255,255,0.16)', transition: 'width 900ms cubic-bezier(0.4,0,0.2,1)' }} />
+            {/* Bar */}
             <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
               style={{
-                width:`${heroHP}%`,
-                background:`linear-gradient(90deg, rgba(14,116,144,0.9) 0%, ${heroBarColor} 60%, rgba(207,250,254,0.95) 100%)`,
-                boxShadow:`0 0 14px ${heroBarColor}, 0 0 6px ${heroBarColor}88, inset 0 1px 0 rgba(255,255,255,0.35)`,
+                width: `${heroHP}%`,
+                background: `linear-gradient(90deg,rgba(14,116,144,.9) 0%,${heroBarColor} 55%,rgba(207,250,254,.9) 100%)`,
+                boxShadow: `0 0 12px ${heroBarColor}, inset 0 1px 0 rgba(255,255,255,0.3)`,
               }} />
-            {/* Metallic sheen scan */}
+            {/* Sheen */}
             <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
-              <div className="absolute inset-y-0 w-8 bg-white/20 blur-sm skew-x-12" style={{ animation:'bsScan 2.5s linear infinite' }} />
+              <div className="absolute inset-y-0 w-6 bg-white/22 blur-sm skew-x-12" style={{ animation: 'bsScan 2.5s linear infinite' }} />
             </div>
-            {/* Top highlight */}
             <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-full pointer-events-none"
-              style={{ background:'linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)' }} />
-            {/* Bottom shadow */}
-            <div className="absolute inset-x-0 bottom-0 h-1/3 rounded-b-full pointer-events-none"
-              style={{ background:'linear-gradient(to top, rgba(0,0,0,0.4), transparent)' }} />
+              style={{ background: 'linear-gradient(to bottom,rgba(255,255,255,.2),transparent)' }} />
           </div>
         </div>
 
-        <span className="text-base sm:text-xl font-black shrink-0 px-0.5 select-none"
-          style={{ textShadow:'0 0 20px rgba(255,255,255,.7)' }}>⚔️</span>
+        <span className="shrink-0 select-none" style={{ fontSize: 'clamp(12px,3.5vw,20px)', textShadow: '0 0 16px rgba(255,255,255,.7)' }}>⚔️</span>
 
         {/* Monster bar */}
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center mb-1">
-            <span className="font-mono text-[10px] sm:text-xs tabular-nums shrink-0 mr-1" style={{ color: monBarColor }}>
+          <div className="flex justify-between items-center mb-0.5">
+            <span className="font-mono tabular-nums shrink-0 mr-1" style={{ fontSize: 'clamp(9px,2.5vw,12px)', color: monBarColor }}>
               {monsterHP}<span className="text-white/30">/100</span>
             </span>
-            <span className="font-black text-[10px] sm:text-xs md:text-sm truncate text-right"
-              style={{ color:'#fca5a5', textShadow:'0 0 10px rgba(239,68,68,1)' }}>
+            <span className="font-black truncate text-right" style={{ fontSize: 'clamp(9px,2.5vw,13px)', color: '#fca5a5', textShadow: '0 0 10px #ef4444' }}>
               {monster.name}
             </span>
           </div>
-          <div className="relative h-4 sm:h-5 rounded-full overflow-hidden"
+          <div className="relative rounded-full overflow-hidden"
             style={{
-              background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 40%, #111 100%)',
-              border: `1px solid ${monBarColor}66`,
-              boxShadow: `0 0 14px ${monBarColor}44, inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.5)`,
+              height: 'clamp(12px,3.5vw,20px)',
+              background: 'linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 50%,#0d0d0d 100%)',
+              border: `1px solid ${monBarColor}55`,
+              boxShadow: `0 0 12px ${monBarColor}44, inset 0 1px 0 rgba(255,255,255,0.07)`,
               animation: monsterHP < 30 ? 'bsCritPulse 0.7s ease-in-out infinite' : 'none',
             }}>
-            {/* Ghost layer */}
             <div className="absolute inset-y-0 right-0 rounded-full"
-              style={{
-                width:`${monsterHPGhost}%`,
-                background: 'rgba(255,255,255,0.14)',
-                transition:'width 900ms cubic-bezier(0.4,0,0.2,1)',
-              }} />
-            {/* Live bar */}
+              style={{ width: `${monsterHPGhost}%`, background: 'rgba(255,255,255,0.16)', transition: 'width 900ms cubic-bezier(0.4,0,0.2,1)' }} />
             <div className="absolute inset-y-0 right-0 rounded-full transition-all duration-300"
               style={{
-                width:`${monsterHP}%`,
-                background:`linear-gradient(270deg, rgba(127,29,29,0.9) 0%, ${monBarColor} 60%, rgba(255,224,200,0.95) 100%)`,
-                boxShadow:`0 0 14px ${monBarColor}, 0 0 6px ${monBarColor}88, inset 0 1px 0 rgba(255,255,255,0.35)`,
+                width: `${monsterHP}%`,
+                background: `linear-gradient(270deg,rgba(127,29,29,.9) 0%,${monBarColor} 55%,rgba(255,224,200,.9) 100%)`,
+                boxShadow: `0 0 12px ${monBarColor}, inset 0 1px 0 rgba(255,255,255,0.3)`,
               }} />
-            {/* Metallic sheen */}
-            <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none" style={{ transform:'scaleX(-1)' }}>
-              <div className="absolute inset-y-0 w-8 bg-white/20 blur-sm skew-x-12" style={{ animation:'bsScan 2.9s linear infinite' }} />
+            <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none" style={{ transform: 'scaleX(-1)' }}>
+              <div className="absolute inset-y-0 w-6 bg-white/22 blur-sm skew-x-12" style={{ animation: 'bsScan 2.9s linear infinite' }} />
             </div>
             <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-full pointer-events-none"
-              style={{ background:'linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)' }} />
-            <div className="absolute inset-x-0 bottom-0 h-1/3 rounded-b-full pointer-events-none"
-              style={{ background:'linear-gradient(to top, rgba(0,0,0,0.4), transparent)' }} />
+              style={{ background: 'linear-gradient(to bottom,rgba(255,255,255,.2),transparent)' }} />
           </div>
         </div>
       </div>
 
-      {/* ════ BATTLE ARENA ════════════════════════════════════════════════════ */}
+      {/* ══════ BATTLE ARENA — absolute character positions ═══════════════════ */}
       <div
-        className="relative z-10 w-full max-w-7xl h-[36vh] sm:h-[40vh] md:h-[44vh] flex items-end justify-between px-3 sm:px-8 md:px-20 pb-3 transition-transform duration-500"
-        style={{ transform: cameraZoom ? 'scale(1.07)' : 'scale(1)', transformOrigin:'center bottom' }}
+        className="relative z-10 w-full transition-transform duration-500"
+        style={{
+          height: 'clamp(200px, 42vh, 380px)',
+          transform: cameraZoom ? 'scale(1.07)' : 'scale(1)',
+          transformOrigin: 'center bottom',
+        }}
       >
         {/* Floating damage numbers */}
         {floatNums.map(fn => (
-          <div key={fn.id} className="absolute pointer-events-none z-30 font-black select-none"
+          <div key={fn.id}
+            className="absolute pointer-events-none z-30 font-black select-none"
             style={{
-              fontSize: 'clamp(1.1rem, 4vw, 1.75rem)',
-              left:     fn.target === 'hero' ? '15%' : '70%',
-              bottom:   '58%',
-              transform:'translateX(-50%)',
-              color:    fn.target === 'hero' ? '#f87171' : '#fde047',
-              textShadow: fn.target === 'hero' ? '0 0 16px #ef4444,0 2px 4px rgba(0,0,0,0.8)' : '0 0 16px #eab308,0 2px 4px rgba(0,0,0,0.8)',
-              animation:'bsFloatDmg 1.1s ease-out forwards',
+              fontSize: 'clamp(1rem, 4.5vw, 1.75rem)',
+              left:     fn.target === 'hero' ? '18%' : '72%',
+              bottom:   '65%',
+              transform: 'translateX(-50%)',
+              color:     fn.target === 'hero' ? '#f87171' : '#fde047',
+              textShadow: fn.target === 'hero'
+                ? '0 0 14px #ef4444,0 2px 4px rgba(0,0,0,0.8)'
+                : '0 0 14px #eab308,0 2px 4px rgba(0,0,0,0.8)',
+              animation: 'bsFloatDmg 1.1s ease-out forwards',
             }}>
             -{fn.value}
           </div>
         ))}
 
-        {/* ── Hero (LEFT) ─────────────────────────────────────────────────── */}
-        <div style={{
-          transform: heroTransX,
-          transitionProperty: 'transform',
-          transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
-          transitionDuration: `${heroMoveDur}ms`,
-          willChange: 'transform',
-        }}>
-          <div style={{ transform:`scale(var(--sprite-scale, 1))`, transformOrigin:'bottom center' }}>
-            <DynamicSprite
-              key={`hero-${heroAction}`}
-              folder={heroData.folder}
-              action={heroAction}
-              frameCount={heroConfig.frames[heroAction]}
-              sheetW={heroConfig.sheetW[heroAction]}
-              frameH={heroConfig.frameH}
-              isHero={true}
-              type="sheet"
-              flipped={heroFlipped}
-              facesRight={heroConfig.facesRight}
-              isHurt={heroHurt}
-            />
-          </div>
+        {/* ── HERO (LEFT) — absolute: left 15%, bottom 20% ─────────────────── */}
+        <div
+          className="absolute"
+          style={{
+            left:       '15%',
+            bottom:     '20%',
+            transform:  heroChargeX,
+            transition: heroMoveDur > 0
+              ? `transform ${heroMoveDur}ms cubic-bezier(0.4,0,0.2,1)`
+              : 'none',
+            willChange: 'transform',
+          }}
+        >
+          {/* framer-motion: idle breath + hurt shake */}
+          <motion.div
+            animate={heroMotion.animate}
+            transition={heroMotion.transition}
+          >
+            <div style={{ transform: 'scale(var(--sprite-scale, 1))', transformOrigin: 'bottom center' }}>
+              <DynamicSprite
+                key={`hero-${heroAction}`}
+                folder={heroData.folder}
+                action={heroAction}
+                frameCount={heroConfig.frames[heroAction]}
+                sheetW={heroConfig.sheetW[heroAction]}
+                frameH={heroConfig.frameH}
+                isHero={true}
+                type="sheet"
+                flipped={heroFlipped}
+                facesRight={heroConfig.facesRight}
+                isHurt={heroHurt}
+              />
+            </div>
+          </motion.div>
         </div>
 
-        {/* ── Monster (RIGHT) + impact flash ─────────────────────────────── */}
-        <div className="relative">
+        {/* ── MONSTER (RIGHT) — absolute: right 15%, bottom 20% ───────────── */}
+        <div
+          className="absolute"
+          style={{
+            right:      '15%',
+            bottom:     '20%',
+            transform:  monChargeX,
+            transition: monMoveDur > 0
+              ? `transform ${monMoveDur}ms cubic-bezier(0.4,0,0.2,1)`
+              : 'none',
+            willChange: 'transform',
+          }}
+        >
+          {/* Impact VFX */}
           {showImpact && (
             <div className="absolute inset-0 z-20 pointer-events-none">
-              <div className="absolute inset-0 rounded-xl bg-white/72" style={{ animation:'bsFlash 0.22s ease forwards' }} />
-              <span className="absolute top-[12%] left-[4%]   text-3xl sm:text-4xl" style={{ animation:'bsPop 0.35s ease forwards' }}>💥</span>
-              <span className="absolute top-[35%] right-[4%]  text-xl sm:text-2xl"  style={{ animation:'bsPop 0.35s 0.06s ease both', opacity:0 }}>⭐</span>
-              <span className="absolute bottom-[22%] left-[30%] text-base sm:text-xl" style={{ animation:'bsPop 0.35s 0.11s ease both', opacity:0 }}>✨</span>
-              <span className="absolute top-[55%] left-[15%] text-sm sm:text-lg"  style={{ animation:'bsPop 0.3s 0.17s ease both', opacity:0 }}>⚡</span>
+              <div className="absolute inset-0 rounded-xl bg-white/70" style={{ animation: 'bsFlash 0.22s ease forwards' }} />
+              <span className="absolute top-[10%] left-[0%] text-2xl sm:text-4xl" style={{ animation: 'bsPop 0.35s ease forwards' }}>💥</span>
+              <span className="absolute top-[35%] right-[0%] text-xl sm:text-2xl" style={{ animation: 'bsPop 0.35s 0.06s ease both', opacity: 0 }}>⭐</span>
+              <span className="absolute bottom-[20%] left-[30%] text-lg sm:text-xl" style={{ animation: 'bsPop 0.35s 0.12s ease both', opacity: 0 }}>⚡</span>
             </div>
           )}
-          <div style={{
-            transform: monTransX,
-            transitionProperty: 'transform',
-            transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
-            transitionDuration: `${monMoveDur}ms`,
-            willChange: 'transform',
-          }}>
-            <div style={{ transform:'scale(var(--sprite-scale, 1))', transformOrigin:'bottom center' }}>
+
+          {/* framer-motion: idle breath + hurt shake */}
+          <motion.div
+            animate={monsterMotion.animate}
+            transition={monsterMotion.transition}
+          >
+            <div style={{ transform: 'scale(var(--sprite-scale, 1))', transformOrigin: 'bottom center' }}>
               <DynamicSprite
                 key={`mon-${monsterAction}`}
                 folder={monster.folder}
@@ -671,94 +698,143 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
                 isHurt={monsterHurt}
               />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Combo display */}
-      {showCombo && combo >= 2 && (
-        <div className="fixed top-[16%] left-1/2 z-50 pointer-events-none text-center"
-          style={{ transform:'translateX(-50%)', animation:'bsComboIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards' }}>
-          <div className="text-3xl sm:text-4xl font-black"
-            style={{ color: combo >= 5 ? '#f59e0b':'#22d3ee', textShadow:`0 0 30px ${combo>=5?'#f59e0b':'#22d3ee'}` }}>
-            {combo}× COMBO!
-          </div>
-          {combo >= 5 && <div className="text-sm font-bold text-yellow-300 mt-1">🔥 رائع!</div>}
-        </div>
-      )}
+      {/* Combo */}
+      <AnimatePresence>
+        {showCombo && combo >= 2 && (
+          <motion.div
+            key="combo"
+            initial={{ opacity: 0, scale: 0.5, y: 10 }}
+            animate={{ opacity: 1, scale: 1,   y: 0 }}
+            exit={{    opacity: 0, scale: 0.8,  y: -10 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+            className="fixed z-50 pointer-events-none text-center"
+            style={{ top: '14%', left: '50%', transform: 'translateX(-50%)' }}
+          >
+            <div className="font-black" style={{
+              fontSize: 'clamp(1.4rem, 5vw, 2.2rem)',
+              color: combo >= 5 ? '#f59e0b' : '#22d3ee',
+              textShadow: `0 0 28px ${combo >= 5 ? '#f59e0b' : '#22d3ee'}`,
+            }}>
+              {combo}× COMBO!
+            </div>
+            {combo >= 5 && <div className="text-sm font-bold text-yellow-300 mt-0.5">🔥 رائع!</div>}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* ════ QUESTION PANEL — Glassmorphism Futuristic ══════════════════════ */}
-      <div className="relative z-20 w-full max-w-5xl mx-auto px-2 pb-2">
-        {/* Outer glow frame */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden"
+      {/* Answer flash */}
+      <AnimatePresence>
+        {showResult !== 'none' && (
+          <motion.div
+            key={showResult}
+            initial={{ scale: 0.2, opacity: 0 }}
+            animate={{ scale: 1,   opacity: 1 }}
+            exit={{    scale: 0.8, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+          >
+            <div style={{
+              fontSize: 'clamp(3.5rem, 16vw, 7rem)',
+              color: showResult === 'correct' ? '#4ade80' : '#f87171',
+            }}>
+              {showResult === 'correct' ? '✅' : '❌'}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════ QUESTION PANEL — Glassmorphism ═══════════════════════════════ */}
+      <div className="relative z-20 w-full max-w-5xl mx-auto px-2 pb-2 mt-auto">
+        <div
+          className="relative rounded-2xl overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, rgba(6,182,212,0.11) 0%, rgba(0,0,0,0.92) 45%, rgba(6,182,212,0.07) 100%)',
-            backdropFilter: 'blur(28px)',
+            background: 'linear-gradient(135deg,rgba(6,182,212,0.10) 0%,rgba(0,0,0,0.93) 45%,rgba(6,182,212,0.06) 100%)',
+            backdropFilter:       'blur(28px)',
             WebkitBackdropFilter: 'blur(28px)',
-            border: '1px solid rgba(6,182,212,0.28)',
+            border: '1px solid rgba(6,182,212,0.26)',
             boxShadow: [
-              '0 0 0 1px rgba(6,182,212,0.08)',
-              '0 0 40px rgba(6,182,212,0.14)',
-              '0 0 80px rgba(6,182,212,0.06)',
-              '0 24px 60px rgba(0,0,0,0.9)',
-              'inset 0 1px 0 rgba(255,255,255,0.08)',
-              'inset 0 0 40px rgba(6,182,212,0.04)',
+              '0 0 35px rgba(6,182,212,0.12)',
+              '0 0 70px rgba(6,182,212,0.05)',
+              '0 20px 50px rgba(0,0,0,0.9)',
+              'inset 0 1px 0 rgba(255,255,255,0.07)',
             ].join(','),
-          }}>
+          }}
+        >
+          {/* Top edge glow */}
+          <div className="h-px w-full" style={{ background: 'linear-gradient(90deg,transparent,rgba(6,182,212,0.95) 30%,rgba(34,211,238,1) 50%,rgba(6,182,212,0.95) 70%,transparent)', animation: 'bsGlowPulse 2s ease-in-out infinite' }} />
 
-          {/* Top cyan line — animated pulse */}
-          <div className="h-px w-full"
-            style={{ background:'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.9) 30%, rgba(34,211,238,1) 50%, rgba(6,182,212,0.9) 70%, transparent 100%)', animation:'bsGlowPulse 2s ease-in-out infinite' }} />
+          {/* HUD corner brackets */}
+          {(['tl','tr','bl','br'] as const).map(c => (
+            <div key={c} className="absolute pointer-events-none" style={{
+              top:    c.startsWith('t') ? 0 : 'auto',
+              bottom: c.startsWith('b') ? 0 : 'auto',
+              left:   c.endsWith('l')   ? 0 : 'auto',
+              right:  c.endsWith('r')   ? 0 : 'auto',
+              width: 16, height: 16,
+              borderTop:    c.startsWith('t') ? '2px solid rgba(6,182,212,0.6)' : 'none',
+              borderBottom: c.startsWith('b') ? '2px solid rgba(6,182,212,0.4)' : 'none',
+              borderLeft:   c.endsWith('l')   ? '2px solid rgba(6,182,212,0.6)' : 'none',
+              borderRight:  c.endsWith('r')   ? '2px solid rgba(6,182,212,0.6)' : 'none',
+              borderRadius: c === 'tl' ? '8px 0 0 0' : c === 'tr' ? '0 8px 0 0' : c === 'bl' ? '0 0 0 8px' : '0 0 8px 0',
+            }} />
+          ))}
 
-          {/* Corner accents */}
-          <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-cyan-400/60 rounded-tl-xl pointer-events-none" />
-          <div className="absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-cyan-400/60 rounded-tr-xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-cyan-400/40 rounded-bl-xl pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-cyan-400/40 rounded-br-xl pointer-events-none" />
-
-          <div className="p-3 sm:p-5 md:p-7">
-            {/* Question text */}
-            <h3 className="text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold mb-3 sm:mb-4 text-white leading-relaxed" dir="rtl"
-              style={{ textShadow:'0 0 20px rgba(6,182,212,0.3)' }}>
+          <div className="p-3 sm:p-4 md:p-6">
+            {/* Question */}
+            <p
+              className="text-center font-bold text-white mb-3 leading-relaxed"
+              dir="rtl"
+              style={{ fontSize: 'clamp(0.72rem,2.8vw,1.05rem)', textShadow: '0 0 18px rgba(6,182,212,0.25)' }}
+            >
               {island.question.text}
-            </h3>
+            </p>
 
-            {/* Options grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            {/* Options */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {island.question.options.map((opt, i) => (
-                <button key={i} onClick={() => handleAnswer(i)} disabled={isLocked} dir="rtl"
-                  className="group relative rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold text-right transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 overflow-hidden"
+                <button
+                  key={i}
+                  onClick={() => handleAnswer(i)}
+                  disabled={isLocked}
+                  dir="rtl"
+                  className="group relative rounded-xl text-right font-bold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 overflow-hidden"
                   style={{
-                    padding: 'clamp(10px, 3vw, 18px) clamp(12px, 3vw, 20px)',
+                    padding: 'clamp(9px,2.5vw,16px) clamp(10px,3vw,18px)',
+                    fontSize: 'clamp(0.65rem,2.2vw,0.9rem)',
                     background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(6,182,212,0.12)',
-                  }}>
-
-                  {/* Hover bg */}
-                  <div className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    style={{ background:'linear-gradient(135deg, rgba(6,182,212,0.18), rgba(6,182,212,0.04))' }} />
-                  {/* Hover border glow */}
-                  <div className="absolute inset-0 rounded-xl sm:rounded-2xl transition-all duration-200"
-                    style={{ boxShadow:'0 0 0 0px rgba(6,182,212,0)' }}
-                    onMouseEnter={e => (e.currentTarget.style.boxShadow = 'inset 0 0 24px rgba(6,182,212,0.18), 0 0 16px rgba(6,182,212,0.12), 0 0 0 1px rgba(6,182,212,0.55)')}
-                    onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0px rgba(6,182,212,0)')} />
-
-                  {/* Left accent bar */}
+                    border: '1px solid rgba(6,182,212,0.14)',
+                  }}
+                >
+                  {/* Hover fill */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl"
+                    style={{ background: 'linear-gradient(135deg,rgba(6,182,212,0.18),rgba(6,182,212,0.04))' }} />
+                  {/* Hover border */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl"
+                    style={{ boxShadow: 'inset 0 0 22px rgba(6,182,212,0.17), 0 0 14px rgba(6,182,212,0.12), 0 0 0 1px rgba(6,182,212,0.5)' }} />
+                  {/* Left accent */}
                   <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    style={{ background:'linear-gradient(180deg, transparent, rgba(6,182,212,0.95), transparent)' }} />
-
-                  {/* Scan shimmer on hover */}
-                  <div className="absolute inset-0 overflow-hidden rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    <div className="absolute inset-y-0 w-12 bg-white/10 blur-sm skew-x-12" style={{ animation:'bsScan 1.4s linear infinite' }} />
+                    style={{ background: 'linear-gradient(180deg,transparent,rgba(6,182,212,0.95),transparent)' }} />
+                  {/* Scan shimmer */}
+                  <div className="absolute inset-0 overflow-hidden opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300">
+                    <div className="absolute inset-y-0 w-10 bg-white/12 blur-sm skew-x-12" style={{ animation: 'bsScan 1.4s linear infinite' }} />
                   </div>
 
-                  <div className="relative flex items-center gap-2 sm:gap-3">
-                    <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 transition-all duration-200"
+                  <div className="relative flex items-center gap-2">
+                    <span
+                      className="shrink-0 rounded-lg flex items-center justify-center font-black transition-all duration-200"
                       style={{
-                        background: 'rgba(6,182,212,0.1)',
-                        border: '1px solid rgba(6,182,212,0.25)',
+                        width: 'clamp(20px,4.5vw,28px)',
+                        height: 'clamp(20px,4.5vw,28px)',
+                        fontSize: 'clamp(9px,2vw,12px)',
+                        background: 'rgba(6,182,212,0.10)',
+                        border: '1px solid rgba(6,182,212,0.28)',
                         color: 'rgba(6,182,212,0.9)',
-                      }}>
+                      }}
+                    >
                       {i + 1}
                     </span>
                     <span className="text-white/85 group-hover:text-cyan-50 transition-colors duration-200 leading-snug">{opt}</span>
@@ -768,28 +844,21 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             </div>
           </div>
 
-          {/* Bottom cyan line */}
-          <div className="h-px w-full"
-            style={{ background:'linear-gradient(90deg, transparent 0%, rgba(6,182,212,0.6) 40%, rgba(6,182,212,0.6) 60%, transparent 100%)' }} />
+          {/* Bottom edge */}
+          <div className="h-px w-full" style={{ background: 'linear-gradient(90deg,transparent,rgba(6,182,212,0.55) 40%,rgba(6,182,212,0.55) 60%,transparent)' }} />
         </div>
       </div>
 
-      {/* Back button */}
-      <button onClick={onBack}
-        className="absolute top-2 left-2 z-30 px-3 py-1.5 bg-black/60 hover:bg-red-900/80 rounded-full text-white font-bold border border-white/20 text-[10px] sm:text-xs md:text-sm backdrop-blur-sm transition-all">
-        🏳️ انسحاب
+      {/* Exit button */}
+      <button
+        onClick={onBack}
+        className="absolute top-2 left-2 z-30 bg-black/65 hover:bg-red-900/80 rounded-full font-bold text-white border border-white/20 backdrop-blur-sm transition-all active:scale-95"
+        style={{ padding: 'clamp(4px,1.5vw,8px) clamp(8px,3vw,16px)', fontSize: 'clamp(9px,2.5vw,13px)' }}
+      >
+        🏳️ خروج
       </button>
 
-      {/* Answer flash */}
-      {showResult !== 'none' && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="text-6xl sm:text-8xl font-black drop-shadow-2xl"
-            style={{ animation:'bsPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards', color: showResult==='correct'?'#4ade80':'#f87171' }}>
-            {showResult === 'correct' ? '✅' : '❌'}
-          </div>
-        </div>
-      )}
-
+      {/* Victory / Defeat */}
       {gameResult === 'victory' && (
         <EpicModal type="victory" monsterName={monster.name}
           correct={correctAnswers} wrong={wrongAnswers}
@@ -803,12 +872,13 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           accuracy={accuracy} onAction={onDefeat} />
       )}
 
-      {/* CSS custom property for sprite scale + keyframes */}
+      {/* ── CSS: sprite scale breakpoints + keyframes ── */}
       <style>{`
-        :root { --sprite-scale: 0.85; }
-        @media (min-width:  480px) { :root { --sprite-scale: 0.95; } }
+        :root { --sprite-scale: 0.78; }
+        @media (min-width:  380px) { :root { --sprite-scale: 0.88; } }
+        @media (min-width:  480px) { :root { --sprite-scale: 0.96; } }
         @media (min-width:  640px) { :root { --sprite-scale: 1.05; } }
-        @media (min-width:  768px) { :root { --sprite-scale: 1.15; } }
+        @media (min-width:  768px) { :root { --sprite-scale: 1.18; } }
         @media (min-width: 1024px) { :root { --sprite-scale: 1.35; } }
         @media (min-width: 1280px) { :root { --sprite-scale: 1.5;  } }
 
@@ -823,213 +893,196 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           100% { transform:scale(1)   rotate(0deg);   opacity:1; }
         }
         @keyframes bsShake {
-          0%,100% { transform:translate(0,0) rotate(0deg); }
-          15% { transform:translate(-8px,3px)  rotate(-0.6deg); }
-          30% { transform:translate(8px,-3px)  rotate(0.6deg); }
-          45% { transform:translate(-5px,4px)  rotate(-0.3deg); }
-          60% { transform:translate(5px,-2px)  rotate(0.3deg); }
+          0%,100% { transform:translate(0,0); }
+          15% { transform:translate(-8px,3px); }
+          30% { transform:translate(8px,-3px); }
+          45% { transform:translate(-5px,4px); }
+          60% { transform:translate(5px,-2px); }
           80% { transform:translate(-2px,1px); }
         }
-        @keyframes bsFlash    { 0%{opacity:0.8;} 100%{opacity:0;} }
-        @keyframes bsWhiteFlash { 0%{opacity:0.5;} 100%{opacity:0;} }
-        @keyframes bsScan     { 0%{left:-12%;} 100%{left:112%;} }
-        @keyframes bsCritPulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
+        @keyframes bsFlash      { 0%{opacity:.8;} 100%{opacity:0;} }
+        @keyframes bsWhiteFlash { 0%{opacity:.48;} 100%{opacity:0;} }
+        @keyframes bsScan       { 0%{left:-14%;} 100%{left:114%;} }
+        @keyframes bsCritPulse  { 0%,100%{opacity:1;} 50%{opacity:.5;} }
         @keyframes bsFloatDmg {
-          0%   { transform:translateX(-50%) translateY(0)     scale(1.2); opacity:1; }
-          30%  { transform:translateX(-50%) translateY(-24px)  scale(1);   opacity:1; }
-          100% { transform:translateX(-50%) translateY(-70px)  scale(0.7); opacity:0; }
-        }
-        @keyframes bsComboIn {
-          0%   { opacity:0; transform:translateX(-50%) scale(0.5); }
-          60%  { opacity:1; transform:translateX(-50%) scale(1.15); }
-          100% { opacity:1; transform:translateX(-50%) scale(1); }
+          0%   { transform:translateX(-50%) translateY(0)    scale(1.2); opacity:1; }
+          30%  { transform:translateX(-50%) translateY(-22px) scale(1);  opacity:1; }
+          100% { transform:translateX(-50%) translateY(-68px) scale(.7); opacity:0; }
         }
         @keyframes bsModalIn {
-          0%   { opacity:0; transform:scale(0.88) translateY(24px); }
+          0%   { opacity:0; transform:scale(.9) translateY(28px); }
           60%  { opacity:1; transform:scale(1.03) translateY(-4px); }
-          100% { opacity:1; transform:scale(1)    translateY(0); }
+          100% { opacity:1; transform:scale(1) translateY(0); }
         }
         @keyframes bsParticle {
-          0%   { opacity:1; transform:translateY(0) scale(1) rotate(0deg); }
-          100% { opacity:0; transform:translateY(-70px) scale(0.3) rotate(180deg); }
+          0%   { opacity:1; transform:translateY(0) scale(1); }
+          100% { opacity:0; transform:translateY(-64px) scale(.3) rotate(160deg); }
         }
-        @keyframes bsGlowPulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
-        @keyframes bsFloat     { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
-        @keyframes bsStatIn {
-          0%   { opacity:0; transform:translateY(10px); }
-          100% { opacity:1; transform:translateY(0); }
-        }
+        @keyframes bsGlowPulse  { 0%,100%{opacity:.45;} 50%{opacity:1;} }
+        @keyframes bsFloat      { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-7px);} }
+        @keyframes bsStatIn     { 0%{opacity:0;transform:translateY(10px);} 100%{opacity:1;transform:translateY(0);} }
       `}</style>
     </div>
   );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Epic Victory / Defeat overlay — Full-screen, mobile-optimized
+// Epic Victory / Defeat overlay — mobile-first bottom sheet
 // ─────────────────────────────────────────────────────────────────────────────
 interface EpicModalProps {
-  type: 'victory'|'defeat'; monsterName: string;
+  type: 'victory' | 'defeat'; monsterName: string;
   correct: number; wrong: number;
   damageDealt: number; damageReceived: number;
   accuracy: number; onAction: () => void;
 }
 
 const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageReceived, accuracy, onAction }: EpicModalProps) => {
-  const isV   = type === 'victory';
+  const isV    = type === 'victory';
   const accent = isV ? '#eab308' : '#ef4444';
   const rgb    = isV ? '234,179,8' : '239,68,68';
   const parts  = isV
-    ? ['⭐','✨','🌟','💫','🏆','⭐','✨','🌟','💛','✦','✧','💥']
-    : ['💀','🩸','☠️','💀','🩸','☠️','💀','🩸','💣','⚡','🔥','☠️'];
+    ? ['⭐', '✨', '🌟', '💫', '🏆', '⭐', '✨', '🌟', '💛', '✦', '✧', '💥']
+    : ['💀', '🩸', '☠️', '💀', '🩸', '☠️', '💀', '🩸', '💣', '⚡', '🔥', '☠️'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden"
-      style={{ background:`radial-gradient(ellipse at center, rgba(${rgb},0.22) 0%, rgba(0,0,0,0.97) 65%)` }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden"
+      style={{ background: `radial-gradient(ellipse at center,rgba(${rgb},.22) 0%,rgba(0,0,0,.97) 65%)` }}
+    >
+      <div className="absolute inset-0" style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }} />
 
-      {/* Blur backdrop */}
-      <div className="absolute inset-0" style={{ backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)' }} />
-
-      {/* Floating particles */}
+      {/* Particles */}
       {parts.map((p, i) => (
-        <span key={i} className="absolute text-xl sm:text-2xl pointer-events-none select-none"
+        <span key={i} className="absolute pointer-events-none select-none"
           style={{
-            left:`${5 + (i % 6) * 18}%`,
-            bottom:`${10 + Math.floor(i / 6) * 40 + (i % 3) * 8}%`,
-            animation:`bsParticle ${1.5 + i * 0.2}s ${i * 0.12}s ease-out infinite`,
+            fontSize: 'clamp(14px,3.5vw,22px)',
+            left: `${5 + (i % 6) * 17}%`,
+            bottom: `${8 + Math.floor(i / 6) * 38 + (i % 3) * 7}%`,
+            animation: `bsParticle ${1.5 + i * 0.2}s ${i * 0.12}s ease-out infinite`,
             opacity: 0,
           }}>{p}</span>
       ))}
 
       {/* Ambient glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-80 h-80 rounded-full blur-3xl -top-20 -left-20"
-          style={{ background:`rgba(${rgb},0.16)`, animation:'bsGlowPulse 3s ease-in-out infinite' }} />
-        <div className="absolute w-80 h-80 rounded-full blur-3xl -bottom-20 -right-20"
-          style={{ background:`rgba(${rgb},0.11)`, animation:'bsGlowPulse 3.5s 0.6s ease-in-out infinite' }} />
+        <div className="absolute rounded-full blur-3xl" style={{ width: 280, height: 280, top: -80, left: -80, background: `rgba(${rgb},.16)`, animation: 'bsGlowPulse 3s ease-in-out infinite' }} />
+        <div className="absolute rounded-full blur-3xl" style={{ width: 280, height: 280, bottom: -80, right: -80, background: `rgba(${rgb},.11)`, animation: 'bsGlowPulse 3.5s .6s ease-in-out infinite' }} />
       </div>
 
-      {/* Card — slides up on mobile, centered on desktop */}
-      <div className="relative z-10 w-full sm:max-w-md mx-auto rounded-t-3xl sm:rounded-3xl overflow-hidden"
+      {/* Card */}
+      <motion.div
+        initial={{ y: 60, opacity: 0, scale: 0.92 }}
+        animate={{ y: 0,  opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0.05 }}
+        className="relative z-10 w-full sm:max-w-md mx-auto rounded-t-3xl sm:rounded-3xl overflow-hidden"
         style={{
-          border: `1px solid rgba(${rgb},0.4)`,
+          border: `1px solid rgba(${rgb},.4)`,
           borderBottom: 'none',
-          background:`linear-gradient(155deg, rgba(${rgb},0.15) 0%, rgba(0,0,0,0.98) 50%, rgba(${rgb},0.08) 100%)`,
-          boxShadow:[
-            `0 0 80px rgba(${rgb},0.4)`,
-            `0 0 180px rgba(${rgb},0.14)`,
-            `0 -20px 60px rgba(0,0,0,0.8)`,
-            `inset 0 1px 0 rgba(255,255,255,0.1)`,
-          ].join(','),
-          animation:'bsModalIn 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards',
-        }}>
+          background: `linear-gradient(155deg,rgba(${rgb},.15) 0%,rgba(0,0,0,.98) 50%,rgba(${rgb},.08) 100%)`,
+          boxShadow: `0 0 70px rgba(${rgb},.4),0 0 160px rgba(${rgb},.12),inset 0 1px 0 rgba(255,255,255,.1)`,
+        }}
+      >
+        <div className="h-0.5" style={{ background: `linear-gradient(90deg,transparent,${accent},transparent)` }} />
 
-        {/* Top accent line */}
-        <div className="h-0.5" style={{ background:`linear-gradient(90deg,transparent,${accent},transparent)` }} />
-
-        {/* Top bar decoration */}
-        <div className="flex items-center justify-center gap-2 pt-3 pb-1">
-          <div className="flex-1 h-px mx-4" style={{ background:`linear-gradient(90deg,transparent,rgba(${rgb},0.4))` }} />
-          <span className="text-xs font-black tracking-widest uppercase opacity-50" style={{ color: accent }}>
+        {/* Label bar */}
+        <div className="flex items-center justify-center gap-2 pt-3 pb-1 px-5">
+          <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg,transparent,rgba(${rgb},.4))` }} />
+          <span className="text-[9px] sm:text-xs font-black tracking-widest uppercase opacity-50" style={{ color: accent }}>
             {isV ? 'VICTORY' : 'DEFEAT'}
           </span>
-          <div className="flex-1 h-px mx-4" style={{ background:`linear-gradient(90deg,rgba(${rgb},0.4),transparent)` }} />
+          <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg,rgba(${rgb},.4),transparent)` }} />
         </div>
 
-        <div className="px-4 sm:px-7 pt-2 pb-5">
-          {/* Trophy / Skull */}
+        <div className="px-4 sm:px-6 pt-1 pb-5">
+          {/* Icon + Title */}
           <div className="text-center mb-3">
-            <div className="text-5xl sm:text-6xl mb-2" style={{ animation:'bsFloat 2.5s ease-in-out infinite' }}>
-              {isV ? '🏆' : '💀'}
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-0.5"
-              style={{ color:accent, textShadow:`0 0 30px rgba(${rgb},1), 0 0 60px rgba(${rgb},0.5)` }}>
+            <div style={{ fontSize: 'clamp(2.5rem,10vw,4rem)', animation: 'bsFloat 2.5s ease-in-out infinite' }}>{isV ? '🏆' : '💀'}</div>
+            <h2 className="font-black tracking-tight mb-0.5"
+              style={{ fontSize: 'clamp(1.6rem,6vw,2.6rem)', color: accent, textShadow: `0 0 28px rgba(${rgb},1),0 0 56px rgba(${rgb},.5)` }}>
               {isV ? 'انتصار!' : 'هُزِمت!'}
             </h2>
-            <p className="text-white/40 text-xs sm:text-sm" dir="rtl">
+            <p className="text-white/40 text-xs" dir="rtl">
               {isV ? `أسقطت ${monsterName} في المعركة!` : `${monsterName} كان أقوى هذه المرة…`}
             </p>
           </div>
 
-          {/* Stats grid */}
+          {/* Stats */}
           <div className="grid grid-cols-2 gap-2 mb-3">
             {[
-              { label:'إجابات صحيحة', value: correct,            color:'#4ade80', icon:'✅' },
-              { label:'إجابات خاطئة',  value: wrong,              color:'#f87171', icon:'❌' },
-              { label:'ضرر ألحقته',    value:`${damageDealt}%`,   color: accent,   icon:'⚔️' },
-              { label:'ضرر تلقيته',    value:`${damageReceived}%`,color:'#f97316', icon:'🛡️' },
+              { label: 'إجابات صحيحة', value: correct,             color: '#4ade80', icon: '✅' },
+              { label: 'إجابات خاطئة',  value: wrong,               color: '#f87171', icon: '❌' },
+              { label: 'ضرر ألحقته',    value: `${damageDealt}%`,   color: accent,    icon: '⚔️' },
+              { label: 'ضرر تلقيته',    value: `${damageReceived}%`,color: '#f97316', icon: '🛡️' },
             ].map((s, idx) => (
               <div key={idx}
                 className="rounded-xl p-2.5 text-center"
                 style={{
-                  background:'rgba(255,255,255,0.04)',
-                  border:'1px solid rgba(255,255,255,0.08)',
-                  animation:`bsStatIn 0.4s ${0.1 + idx*0.07}s ease both`,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  animation: `bsStatIn 0.4s ${0.1 + idx * 0.07}s ease both`,
                 }}>
-                <div className="text-base mb-0.5">{s.icon}</div>
-                <div className="text-lg sm:text-xl font-black" style={{ color:s.color }}>{s.value}</div>
-                <div className="text-white/35 text-[10px] sm:text-xs mt-0.5" dir="rtl">{s.label}</div>
+                <div style={{ fontSize: 'clamp(0.9rem,3.5vw,1.2rem)' }}>{s.icon}</div>
+                <div className="font-black" style={{ fontSize: 'clamp(1rem,4vw,1.4rem)', color: s.color }}>{s.value}</div>
+                <div className="text-white/35 mt-0.5" dir="rtl" style={{ fontSize: 'clamp(8px,2vw,11px)' }}>{s.label}</div>
               </div>
             ))}
           </div>
 
           {/* Accuracy bar */}
-          <div className="mb-4 p-3 rounded-2xl" style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)' }}>
+          <div className="mb-4 p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <div className="flex justify-between items-center mb-1.5">
-              <span className="text-white/40 text-xs" dir="rtl">الدقة</span>
-              <span className="font-black text-sm" style={{ color: accuracy>=70?'#4ade80':accuracy>=40?'#f59e0b':'#f87171' }}>
-                {accuracy}%
-              </span>
+              <span className="text-white/40" style={{ fontSize: 'clamp(9px,2vw,12px)' }} dir="rtl">الدقة</span>
+              <span className="font-black" style={{
+                fontSize: 'clamp(10px,2.5vw,14px)',
+                color: accuracy >= 70 ? '#4ade80' : accuracy >= 40 ? '#f59e0b' : '#f87171',
+              }}>{accuracy}%</span>
             </div>
-            <div className="h-2.5 bg-black/60 rounded-full overflow-hidden">
+            <div className="h-2 bg-black/60 rounded-full overflow-hidden">
               <div className="h-full rounded-full transition-all duration-1000 delay-300"
                 style={{
-                  width:`${accuracy}%`,
-                  background: accuracy>=70
+                  width: `${accuracy}%`,
+                  background: accuracy >= 70
                     ? 'linear-gradient(90deg,#166534,#4ade80)'
-                    : accuracy>=40
+                    : accuracy >= 40
                       ? 'linear-gradient(90deg,#78350f,#f59e0b)'
                       : 'linear-gradient(90deg,#7f1d1d,#f87171)',
-                  boxShadow:`0 0 12px ${accuracy>=70?'#4ade80':accuracy>=40?'#f59e0b':'#f87171'}`,
+                  boxShadow: `0 0 10px ${accuracy >= 70 ? '#4ade80' : accuracy >= 40 ? '#f59e0b' : '#f87171'}`,
                 }} />
             </div>
           </div>
 
-          {/* CTA Button */}
-          <button onClick={onAction}
-            className="w-full py-3.5 sm:py-4 rounded-2xl font-black text-base sm:text-lg tracking-wide active:scale-95 transition-all duration-150 relative overflow-hidden group"
+          {/* CTA */}
+          <button
+            onClick={onAction}
+            className="w-full rounded-2xl font-black tracking-wide active:scale-95 transition-all duration-150 relative overflow-hidden group"
             style={{
+              padding: 'clamp(10px,3vw,16px)',
+              fontSize: 'clamp(0.85rem,3.5vw,1.1rem)',
               background: isV
-                ? 'linear-gradient(135deg, #78350f 0%, #ca8a04 40%, #eab308 70%, #fde047 100%)'
-                : 'linear-gradient(135deg, #7f1d1d 0%, #b91c1c 40%, #ef4444 75%, #f87171 100%)',
-              boxShadow:`0 0 36px rgba(${rgb},0.7), 0 8px 24px rgba(0,0,0,0.5)`,
+                ? 'linear-gradient(135deg,#78350f 0%,#ca8a04 40%,#eab308 70%,#fde047 100%)'
+                : 'linear-gradient(135deg,#7f1d1d 0%,#b91c1c 40%,#ef4444 75%,#f87171 100%)',
+              boxShadow: `0 0 32px rgba(${rgb},.65),0 8px 20px rgba(0,0,0,.5)`,
               color: isV ? '#000' : '#fff',
-              border: `1px solid rgba(${rgb},0.5)`,
-            }}>
-            {/* Animated sheen */}
+              border: `1px solid rgba(${rgb},.5)`,
+            }}
+          >
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden rounded-2xl">
-              <div className="absolute inset-y-0 w-20 bg-white/30 blur-sm skew-x-12" style={{ animation:'bsScan 0.9s linear infinite' }} />
+              <div className="absolute inset-y-0 w-16 bg-white/28 blur-sm skew-x-12" style={{ animation: 'bsScan 0.9s linear infinite' }} />
             </div>
-            <span className="relative">{isV ? '🚀 متابعة المغامرة' : '↩ حاول مجدداً'}</span>
+            <span className="relative">{isV ? '🚀 متابعة المغامرة' : '↩ العودة للبيت'}</span>
           </button>
         </div>
 
-        {/* Bottom accent */}
-        <div className="h-0.5" style={{ background:`linear-gradient(90deg,transparent,rgba(${rgb},0.5),transparent)` }} />
-      </div>
-    </div>
+        <div className="h-0.5" style={{ background: `linear-gradient(90deg,transparent,rgba(${rgb},.5),transparent)` }} />
+      </motion.div>
+    </motion.div>
   );
 };
 
-const StatCard = ({ label, value, color, icon }: { label:string; value:string|number; color:string; icon:string }) => (
-  <div className="rounded-xl p-3 border border-white/8 bg-white/5 text-center">
-    <div className="text-lg mb-0.5">{icon}</div>
-    <div className="text-xl font-black" style={{ color }}>{value}</div>
-    <div className="text-white/40 text-xs mt-0.5" dir="rtl">{label}</div>
-  </div>
-);
-
 const Err = ({ msg }: { msg: string }) => (
-  <div className="min-h-screen bg-black text-white flex items-center justify-center text-xl">{msg}</div>
+  <div className="min-h-screen bg-black text-white flex items-center justify-center text-lg text-center px-4">{msg}</div>
 );
 
 export default BattleScreen;

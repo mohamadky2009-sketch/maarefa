@@ -6,80 +6,73 @@ import FloatingAstronaut from './FloatingAstronaut';
 import FloatingRocket from './FloatingRocket';
 import parchmentImg from '@/assets/ui/parchment.png';
 
+// ── Monster Guard Sprite ──────────────────────────────────────────────────────
 const MonsterGuard = () => {
   const [frame, setFrame] = useState(0);
   const totalFrames = 8;
-
   useEffect(() => {
-    const timer = setInterval(() => {
-      setFrame((prev) => (prev + 1) % totalFrames);
-    }, 150);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setFrame(p => (p + 1) % totalFrames), 150);
+    return () => clearInterval(t);
   }, []);
-
-  const positionX = (frame / (totalFrames - 1)) * 100;
-
+  const posX = (frame / (totalFrames - 1)) * 100;
   return (
-    <div className="absolute right-[-10px] md:right-[-70px] top-1/2 -translate-y-1/2 z-20 animate-float opacity-95">
-      <div 
-        className="w-[180px] h-[180px] md:w-[300px] md:h-[300px] drop-shadow-[0_0_30px_rgba(30,64,175,0.4)] scale-x-[-1]"
+    <div className="absolute right-0 sm:right-[-50px] top-1/2 -translate-y-1/2 z-20 opacity-90 pointer-events-none">
+      <div
+        className="w-[130px] h-[130px] sm:w-[200px] sm:h-[200px] md:w-[270px] md:h-[270px] scale-x-[-1]"
         style={{
           backgroundImage: `url('/src/assets/combat/monster1/Sprites/Idle.png')`,
           backgroundSize: `${totalFrames * 100}% 100%`,
-          backgroundPosition: `${positionX}% center`,
+          backgroundPosition: `${posX}% center`,
           backgroundRepeat: 'no-repeat',
-          imageRendering: 'pixelated'
+          imageRendering: 'pixelated',
+          filter: 'drop-shadow(0 0 18px rgba(30,64,175,0.5))',
         }}
       />
     </div>
   );
 };
 
+// ── Hero Selection Card ───────────────────────────────────────────────────────
 const HeroCard = ({ character, isSelected, onClick }: any) => {
   const [frame, setFrame] = useState(0);
-  const totalFrames = character.folder === 'hero3' ? 8 : 6; 
-
+  const totalFrames = character.folder === 'hero3' ? 8 : 6;
   useEffect(() => {
-    const timer = setInterval(() => {
-      setFrame((prev) => (prev + 1) % totalFrames);
-    }, 150);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setFrame(p => (p + 1) % totalFrames), 150);
+    return () => clearInterval(t);
   }, [totalFrames]);
-
-  const positionX = (frame / (totalFrames - 1)) * 100;
-  
-  const imagePath = character.folder === 'hero3' 
-    ? `/src/assets/combat/${character.folder}/Sprites/Idle.png` 
+  const posX = (frame / (totalFrames - 1)) * 100;
+  const src = character.folder === 'hero3'
+    ? `/src/assets/combat/${character.folder}/Sprites/Idle.png`
     : `/src/assets/combat/${character.folder}/Idle.png`;
-
   return (
-    <div 
+    <div
       onClick={onClick}
-      className={`relative cursor-pointer transition-all duration-300 rounded-2xl border-4 p-3 ${
-        isSelected 
-          ? 'border-blue-500 bg-blue-900/40 scale-110 shadow-[0_0_30px_rgba(59,130,246,0.6)]' 
+      className={`relative cursor-pointer transition-all duration-300 rounded-2xl border-4 p-3 select-none ${
+        isSelected
+          ? 'border-blue-500 bg-blue-900/40 scale-110 shadow-[0_0_30px_rgba(59,130,246,0.6)]'
           : 'border-white/10 bg-black/40 hover:bg-white/5 hover:scale-105'
       }`}
     >
-      <div className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center overflow-hidden mx-auto">
-        <div 
+      <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center overflow-hidden mx-auto">
+        <div
           className={`w-full h-full ${character.folder === 'hero3' ? 'scale-[2.4]' : 'scale-[1.8]'}`}
           style={{
-            backgroundImage: `url('${imagePath}')`, 
-            backgroundSize: `${totalFrames * 100}% 100%`, 
-            backgroundPosition: `${positionX}% center`, 
+            backgroundImage: `url('${src}')`,
+            backgroundSize: `${totalFrames * 100}% 100%`,
+            backgroundPosition: `${posX}% center`,
             backgroundRepeat: 'no-repeat',
-            imageRendering: 'pixelated'
+            imageRendering: 'pixelated',
           }}
         />
       </div>
-      <p className={`text-center text-[10px] md:text-xs font-black mt-3 uppercase ${isSelected ? 'text-blue-400' : 'text-gray-400'}`}>
+      <p className={`text-center text-[9px] sm:text-xs font-black mt-2 uppercase ${isSelected ? 'text-blue-400' : 'text-gray-400'}`}>
         {character.name}
       </p>
     </div>
   );
 };
 
+// ── Entry Screen ──────────────────────────────────────────────────────────────
 interface EntryScreenProps {
   onAdmin: () => void;
   loggedIn?: boolean;
@@ -88,9 +81,8 @@ interface EntryScreenProps {
 
 const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) => {
   const { registerPlayer } = useGame();
-  
   const [phase, setPhase] = useState<'intro' | 'setup'>('intro');
-  const [step, setStep] = useState<'hero' | 'name' | 'email'>('hero');
+  const [step, setStep]   = useState<'hero' | 'name' | 'email'>('hero');
   const [formData, setFormData] = useState({ name: '', email: '', heroId: CHARACTERS[0].id });
 
   const handleNext = () => {
@@ -98,12 +90,11 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
     if (step === 'hero') {
       setStep('name');
     } else if (step === 'name') {
-      if (!formData.name.trim()) return alert("يا بطل، سجل اسمك أولاً!");
+      if (!formData.name.trim()) return alert('يا بطل، سجل اسمك أولاً!');
       setStep('email');
     } else {
-      if (!formData.email.trim() || !formData.email.includes('@')) {
-        return alert("تأكد من كتابة البريد الإلكتروني بشكل صحيح!");
-      }
+      if (!formData.email.trim() || !formData.email.includes('@'))
+        return alert('تأكد من كتابة البريد الإلكتروني بشكل صحيح!');
       playSound('victory');
       registerPlayer(formData.name, formData.email, formData.heroId);
     }
@@ -111,101 +102,113 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
 
   const handleStartAdventure = () => {
     playSound('click');
-    if (loggedIn && onPlay) {
-      onPlay();
-    } else {
-      setPhase('setup');
-    }
+    if (loggedIn && onPlay) onPlay();
+    else setPhase('setup');
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-[#050505] overflow-hidden text-white font-sans">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#050505] overflow-hidden text-white">
       <StarField />
       <FloatingRocket />
-
       {phase === 'intro' && !loggedIn && <FloatingAstronaut />}
 
-      {/* ── Scroll / Parchment intro ── */}
+      {/* ── Intro / Scroll Phase ── */}
       {phase === 'intro' && (
-        <div className="relative flex items-center z-30 w-full max-w-4xl justify-center px-4">
+        <div className="relative flex items-center z-30 w-full max-w-3xl justify-center px-3">
           <MonsterGuard />
-          
-          <div className="animate-float z-30">
-            {/* Parchment card — tighter on mobile */}
-            <div className="relative w-[80vw] max-w-[380px] mx-auto animate-in fade-in zoom-in duration-700">
-              {/* Aspect ratio wrapper */}
-              <div className="relative" style={{ paddingBottom: '130%' }}>
+
+          {/* Parchment scroll */}
+          <div className="relative z-30 w-full flex justify-center" style={{ animation: 'entryFloat 4s ease-in-out infinite' }}>
+            <div
+              className="relative"
+              style={{
+                width: 'min(72vw, 320px)',
+                animation: 'entryFadeIn 0.7s cubic-bezier(0.34,1.56,0.64,1) both',
+              }}
+            >
+              {/* Aspect ratio box */}
+              <div className="relative" style={{ paddingBottom: '135%' }}>
                 <img
                   src={parchmentImg}
-                  className="absolute inset-0 w-full h-full object-fill drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] rounded-2xl"
                   draggable={false}
+                  className="absolute inset-0 w-full h-full object-fill rounded-2xl select-none"
+                  style={{ filter: 'drop-shadow(0 20px 50px rgba(0,0,0,0.88))' }}
                 />
 
-                {/* Content layer */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-8 py-12 text-amber-950 text-center gap-0">
-                  
+                {/* Text & Buttons layer */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-6 py-10 text-amber-950 text-center gap-0">
                   {/* Title */}
-                  <h1 className="text-5xl sm:text-6xl font-black mb-1 drop-shadow-md leading-tight">
+                  <h1
+                    className="font-black leading-none mb-1 drop-shadow-md"
+                    style={{ fontSize: 'clamp(2.2rem, 11vw, 3.4rem)' }}
+                  >
                     مَعرِفة
                   </h1>
-                  <p className="text-[9px] sm:text-[10px] font-bold mb-8 opacity-70 tracking-[0.3em] uppercase">
+                  <p
+                    className="font-bold opacity-60 tracking-[0.28em] uppercase mb-5"
+                    style={{ fontSize: 'clamp(0.45rem, 1.8vw, 0.6rem)' }}
+                  >
                     Neptune to the Sun
                   </p>
 
-                  {/* Decorative divider */}
-                  <div className="w-24 h-px bg-amber-950/30 mb-8" />
+                  {/* Ornamental divider */}
+                  <div className="flex items-center gap-2 mb-5 w-full px-2">
+                    <div className="flex-1 h-px bg-amber-900/30" />
+                    <span className="text-amber-900/40 text-[8px]">✦</span>
+                    <div className="flex-1 h-px bg-amber-900/30" />
+                  </div>
 
-                  {/* Buttons — styled as leather scroll ends */}
-                  <div className="flex flex-col items-center gap-3 w-full">
+                  {/* ── Buttons — leather scroll ends, 55% size ── */}
+                  <div className="flex flex-col items-center gap-2.5 w-full">
 
-                    {/* Primary: ابدأ المغامرة */}
+                    {/* Primary */}
                     <button
                       onClick={handleStartAdventure}
-                      className="group relative overflow-hidden active:scale-95 transition-all duration-150"
+                      className="group relative overflow-hidden active:scale-95 transition-all duration-150 select-none"
                       style={{
-                        padding: '8px 28px',
-                        background: 'linear-gradient(180deg, #6b3a1f 0%, #3d1a06 50%, #6b3a1f 100%)',
-                        border: '2px solid #8b5e3c',
-                        borderRadius: '8px',
+                        padding: '5px 18px',
+                        background: 'linear-gradient(180deg,#7a4220 0%,#3d1a06 48%,#7a4220 100%)',
+                        border: '1.5px solid #9a6840',
+                        borderRadius: '7px',
                         color: '#f5deb3',
                         fontWeight: 900,
-                        fontSize: '0.85rem',
-                        letterSpacing: '0.03em',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.3)',
-                        textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-                        minWidth: '160px',
+                        fontSize: 'clamp(0.6rem, 2.5vw, 0.75rem)',
+                        letterSpacing: '0.04em',
+                        boxShadow: '0 3px 10px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.35)',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.65)',
+                        minWidth: '0',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {/* Leather sheen */}
+                      {/* Sheen */}
                       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                        style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 60%)' }} />
-                      {/* Scroll-end notches */}
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-amber-800/60" />
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-amber-800/60" />
+                        style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.14) 0%,transparent 60%)' }} />
+                      {/* Rivets */}
+                      <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-amber-600/60" />
+                      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-amber-600/60" />
                       <span className="relative">ابدأ المغامرة 🚀</span>
                     </button>
 
-                    {/* Secondary: لوحة التحكم */}
+                    {/* Secondary */}
                     <button
                       onClick={() => { playSound('click'); onAdmin(); }}
-                      className="group relative overflow-hidden active:scale-95 transition-all duration-150"
+                      className="group relative overflow-hidden active:scale-95 transition-all duration-150 select-none"
                       style={{
-                        padding: '6px 24px',
+                        padding: '4px 14px',
                         background: 'transparent',
-                        border: '1.5px solid rgba(101,67,33,0.45)',
-                        borderRadius: '8px',
-                        color: 'rgba(101,67,33,0.85)',
+                        border: '1px solid rgba(101,67,33,0.40)',
+                        borderRadius: '6px',
+                        color: 'rgba(101,67,33,0.80)',
                         fontWeight: 700,
-                        fontSize: '0.72rem',
-                        letterSpacing: '0.02em',
-                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
-                        minWidth: '140px',
+                        fontSize: 'clamp(0.5rem, 2vw, 0.62rem)',
+                        letterSpacing: '0.03em',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                        style={{ background: 'rgba(101,67,33,0.08)' }} />
-                      <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-amber-900/40" />
-                      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-amber-900/40" />
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ background: 'rgba(101,67,33,0.09)' }} />
+                      <div className="absolute left-1 top-1/2 -translate-y-1/2 w-0.5 h-0.5 rounded-full bg-amber-900/40" />
+                      <div className="absolute right-1 top-1/2 -translate-y-1/2 w-0.5 h-0.5 rounded-full bg-amber-900/40" />
                       <span className="relative">لوحة التحكم 🔐</span>
                     </button>
                   </div>
@@ -216,37 +219,36 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
         </div>
       )}
 
-      {/* ── Setup phase (registration) ── */}
+      {/* ── Setup / Registration Phase ── */}
       {phase === 'setup' && (
-        <div className="relative z-30 w-full max-w-2xl px-4 sm:px-8 animate-in slide-in-from-bottom-12 duration-500">
+        <div className="relative z-30 w-full max-w-lg px-4 animate-in slide-in-from-bottom-8 duration-500">
           {/* Progress header */}
-          <div className="text-center mb-6 bg-black/50 p-4 sm:p-6 rounded-3xl backdrop-blur-md border border-white/10 shadow-xl">
-            <h2 className="text-3xl sm:text-4xl font-black text-blue-400 mb-4 uppercase tracking-widest drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]">
+          <div className="text-center mb-4 bg-black/50 px-5 py-4 rounded-3xl backdrop-blur-md border border-white/10 shadow-xl">
+            <h2 className="text-2xl sm:text-3xl font-black text-blue-400 mb-3 uppercase tracking-widest"
+              style={{ textShadow: '0 0 15px rgba(59,130,246,0.8)' }}>
               تجهيز المهمة
             </h2>
-            <div className="flex justify-center gap-2 sm:gap-3">
-              {(['hero','name','email'] as const).map((s) => (
-                <div key={s}
-                  className={`h-2 w-16 sm:w-20 rounded-full transition-all duration-300 ${
-                    step === s ? 'bg-blue-500 shadow-[0_0_15px_blue]' : 'bg-white/20'
-                  }`}
-                />
+            <div className="flex justify-center gap-2">
+              {(['hero', 'name', 'email'] as const).map(s => (
+                <div key={s} className={`h-1.5 w-14 sm:w-18 rounded-full transition-all duration-300 ${
+                  step === s ? 'bg-blue-500 shadow-[0_0_12px_blue]' : 'bg-white/20'
+                }`} />
               ))}
             </div>
           </div>
 
-          <div className="bg-black/70 backdrop-blur-xl border-2 border-blue-500/30 rounded-[32px] p-6 sm:p-10 shadow-[0_0_50px_rgba(0,0,0,0.8)] min-h-[320px] flex flex-col justify-center">
-            
+          <div className="bg-black/70 backdrop-blur-xl border-2 border-blue-500/30 rounded-3xl p-5 sm:p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] min-h-[260px] flex flex-col justify-center">
+
             {step === 'hero' && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                <h3 className="text-center font-bold text-xl sm:text-2xl text-gray-100">اختر بطلك للرحلة:</h3>
-                <div className="grid grid-cols-3 gap-4 sm:gap-8">
+              <div className="space-y-5 animate-in fade-in duration-300">
+                <h3 className="text-center font-bold text-lg sm:text-xl text-gray-100">اختر بطلك للرحلة:</h3>
+                <div className="grid grid-cols-3 gap-3 sm:gap-6">
                   {CHARACTERS.map(char => (
-                    <HeroCard 
+                    <HeroCard
                       key={char.id}
                       character={char}
                       isSelected={formData.heroId === char.id}
-                      onClick={() => setFormData({...formData, heroId: char.id})}
+                      onClick={() => setFormData({ ...formData, heroId: char.id })}
                     />
                   ))}
                 </div>
@@ -254,44 +256,57 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
             )}
 
             {step === 'name' && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                <h3 className="text-center font-bold text-xl sm:text-2xl text-gray-100">ما اسمك يا بطل؟</h3>
-                <input 
+              <div className="space-y-5 animate-in fade-in duration-300">
+                <h3 className="text-center font-bold text-lg sm:text-xl text-gray-100">ما اسمك يا بطل؟</h3>
+                <input
                   autoFocus
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  onKeyDown={(e) => e.key === 'Enter' && handleNext()}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  onKeyDown={e => e.key === 'Enter' && handleNext()}
                   placeholder="أدخل اسمك..."
-                  className="w-full bg-black/90 border-2 border-blue-500/60 p-4 sm:p-6 text-center text-2xl sm:text-4xl font-black rounded-2xl outline-none focus:border-blue-400 focus:shadow-[0_0_40px_rgba(59,130,246,0.6)] transition-all text-white placeholder:opacity-20"
+                  className="w-full bg-black/90 border-2 border-blue-500/60 p-4 text-center text-2xl sm:text-3xl font-black rounded-2xl outline-none focus:border-blue-400 focus:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all text-white placeholder:opacity-20"
                 />
               </div>
             )}
 
             {step === 'email' && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                <h3 className="text-center font-bold text-xl sm:text-2xl text-gray-100">سجل بريدك الإلكتروني:</h3>
-                <input 
+              <div className="space-y-5 animate-in fade-in duration-300">
+                <h3 className="text-center font-bold text-lg sm:text-xl text-gray-100">سجل بريدك الإلكتروني:</h3>
+                <input
                   autoFocus
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  onKeyDown={(e) => e.key === 'Enter' && handleNext()}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  onKeyDown={e => e.key === 'Enter' && handleNext()}
                   placeholder="email@example.com"
-                  className="w-full bg-black/90 border-2 border-blue-500/60 p-4 sm:p-6 text-center text-xl sm:text-3xl font-bold rounded-2xl outline-none focus:border-blue-400 focus:shadow-[0_0_40px_rgba(59,130,246,0.6)] transition-all text-white placeholder:opacity-20"
+                  className="w-full bg-black/90 border-2 border-blue-500/60 p-4 text-center text-xl sm:text-2xl font-bold rounded-2xl outline-none focus:border-blue-400 focus:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all text-white placeholder:opacity-20"
                 />
               </div>
             )}
           </div>
 
-          <button 
+          <button
             onClick={handleNext}
-            className="w-full mt-6 py-5 sm:py-6 bg-blue-600 text-white font-black text-2xl sm:text-3xl rounded-2xl shadow-[0_0_40px_rgba(37,99,235,0.6)] hover:bg-blue-500 active:scale-95 transition-all border-4 border-blue-400/50"
+            className="w-full mt-5 py-4 sm:py-5 bg-blue-600 text-white font-black text-xl sm:text-2xl rounded-2xl shadow-[0_0_35px_rgba(37,99,235,0.6)] hover:bg-blue-500 active:scale-95 transition-all border-4 border-blue-400/50"
           >
             {step === 'email' ? '🚀 انطلق إلى نبتون' : 'التالي ➔'}
           </button>
         </div>
       )}
+
+      {/* Keyframes */}
+      <style>{`
+        @keyframes entryFloat {
+          0%,100% { transform: translateY(0px); }
+          50%      { transform: translateY(-10px); }
+        }
+        @keyframes entryFadeIn {
+          0%   { opacity:0; transform:scale(0.88) translateY(18px); }
+          60%  { opacity:1; transform:scale(1.03) translateY(-4px); }
+          100% { opacity:1; transform:scale(1)   translateY(0); }
+        }
+      `}</style>
     </div>
   );
 };
