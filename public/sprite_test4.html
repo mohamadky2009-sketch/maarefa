@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { background: #0d0d1a; color: white; font-family: monospace; padding: 20px; }
+.grid { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 30px; }
+.cell { text-align: center; }
+.sprite { width: 200px; height: 200px; border: 2px solid #555; image-rendering: pixelated; background-color: #111; }
+.label { font-size: 12px; color: #ffd; margin-top: 6px; }
+h3 { color: #0ef; margin: 24px 0 8px; font-size: 20px; }
+</style>
+</head>
+<body>
+<h3>⚔️ MONSTER 4 — normal vs mirrored</h3>
+<div class="grid">
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Run.png');background-size:800% 100%;background-position:42% center;background-repeat:no-repeat;"></div><div class="label">Run NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Run.png');background-size:800% 100%;background-position:42% center;background-repeat:no-repeat;transform:scaleX(-1);"></div><div class="label">Run MIRRORED</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Attack1.png');background-size:700% 100%;background-position:50% center;background-repeat:no-repeat;"></div><div class="label">Atk1 NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Attack1.png');background-size:700% 100%;background-position:50% center;background-repeat:no-repeat;transform:scaleX(-1);"></div><div class="label">Atk1 MIRRORED</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Idle.png');background-size:1100% 100%;background-position:0% center;background-repeat:no-repeat;"></div><div class="label">Idle NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Idle.png');background-size:1100% 100%;background-position:0% center;background-repeat:no-repeat;transform:scaleX(-1);"></div><div class="label">Idle MIRRORED</div></div>
+</div>
+<h3>🧙 HERO 1 (wizard) — normal vs mirrored</h3>
+<div class="grid">
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero1/Idle.png');background-size:700% 100%;background-position:0% center;background-repeat:no-repeat;"></div><div class="label">Idle NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero1/Idle.png');background-size:700% 100%;background-position:0% center;background-repeat:no-repeat;transform:scaleX(-1);"></div><div class="label">Idle MIRRORED</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero1/Attack1.png');background-size:1000% 100%;background-position:50% center;background-repeat:no-repeat;"></div><div class="label">Atk1 MID NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero1/Attack1.png');background-size:1000% 100%;background-position:50% center;background-repeat:no-repeat;transform:scaleX(-1);"></div><div class="label">Atk1 MID MIRRORED</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero1/Run.png');background-size:1000% 100%;background-position:42% center;background-repeat:no-repeat;"></div><div class="label">Run MID NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero1/Run.png');background-size:1000% 100%;background-position:42% center;background-repeat:no-repeat;transform:scaleX(-1);"></div><div class="label">Run MID MIRRORED</div></div>
+</div>
+<h3>🧙 HERO 2 & 3 check</h3>
+<div class="grid">
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero2/Idle.png');background-size:600% 100%;background-position:0% center;background-repeat:no-repeat;"></div><div class="label">H2 Idle NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero2/Idle.png');background-size:600% 100%;background-position:0% center;background-repeat:no-repeat;transform:scaleX(-1);"></div><div class="label">H2 Idle MIRRORED</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero2/Attack_1.png');background-size:600% 100%;background-position:50% center;background-repeat:no-repeat;"></div><div class="label">H2 Atk MID NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero3/Sprites/Idle.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div><div class="label">H3 Idle NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/hero3/Sprites/Attack1.png');background-size:600% 100%;background-position:50% center;background-repeat:no-repeat;"></div><div class="label">H3 Atk MID NORMAL</div></div>
+</div>
+<h3>👹 M1 fire wizard normal vs mirrored</h3>
+<div class="grid">
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/monster1/Sprites/Attack.png');background-size:800% 100%;background-position:50% center;background-repeat:no-repeat;"></div><div class="label">M1 Atk NORMAL</div></div>
+  <div class="cell"><div class="sprite" style="background-image:url('/src/assets/combat/monster1/Sprites/Attack.png');background-size:800% 100%;background-position:50% center;background-repeat:no-repeat;transform:scaleX(-1);"></div><div class="label">M1 Atk MIRRORED</div></div>
+</div>
+</body>
+</html>

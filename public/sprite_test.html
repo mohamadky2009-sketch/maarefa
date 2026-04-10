@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { background: #1a1a2e; color: white; font-family: monospace; padding: 20px; }
+.row { display: flex; gap: 20px; margin: 10px 0; align-items: center; flex-wrap: wrap; }
+.sprite { width: 80px; height: 80px; border: 1px solid #444; image-rendering: pixelated; }
+.label { font-size: 11px; color: #aaa; margin-top: 4px; text-align: center; }
+h3 { color: #0ef; margin: 20px 0 5px; }
+</style>
+</head>
+<body>
+<h3>HEROES (idle frame 1 — natural direction)</h3>
+<div class="row">
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/hero1/Idle.png');background-size:700% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">hero1 idle</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/hero1/Run.png');background-size:1000% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">hero1 run</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/hero2/Idle.png');background-size:600% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">hero2 idle</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/hero2/Run.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">hero2 run</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/hero3/Sprites/Idle.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">hero3 idle</div>
+  </div>
+</div>
+<h3>MONSTER 1 — fire wizard</h3>
+<div class="row">
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster1/Sprites/Idle.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">idle f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster1/Sprites/Move.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">move f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster1/Sprites/Attack.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">attack f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster1/Sprites/Take Hit.png');background-size:400% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">hurt f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster1/Sprites/Death.png');background-size:500% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">death f1</div>
+  </div>
+</div>
+<h3>MONSTER 2 — bringer of death (individual frames)</h3>
+<div class="row">
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster2/Individual Sprite/Idle/Bringer-of-Death_Idle_1.png');background-size:contain;background-position:center;background-repeat:no-repeat;"></div>
+    <div class="label">idle f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster2/Individual Sprite/Attack/Bringer-of-Death_Attack_1.png');background-size:contain;background-position:center;background-repeat:no-repeat;"></div>
+    <div class="label">attack f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster2/Individual Sprite/Cast/Bringer-of-Death_Cast_1.png');background-size:contain;background-position:center;background-repeat:no-repeat;"></div>
+    <div class="label">cast f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster2/Individual Sprite/Hurt/Bringer-of-Death_Hurt_1.png');background-size:contain;background-position:center;background-repeat:no-repeat;"></div>
+    <div class="label">hurt f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster2/Individual Sprite/Death/Bringer-of-Death_Death_1.png');background-size:contain;background-position:center;background-repeat:no-repeat;"></div>
+    <div class="label">death f1</div>
+  </div>
+</div>
+<h3>MONSTER 3 — dark lord</h3>
+<div class="row">
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster3/Sprites/Idle.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">idle f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster3/Sprites/Run.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">run f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster3/Sprites/Attack1.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">atk1 f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster3/Sprites/Attack2.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">atk2 f1</div>
+  </div>
+</div>
+<h3>MONSTER 4 — rebel knight</h3>
+<div class="row">
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Idle.png');background-size:1100% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">idle f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Run.png');background-size:800% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">run f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Attack1.png');background-size:700% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">atk1 f1</div>
+  </div>
+  <div>
+    <div class="sprite" style="background-image:url('/src/assets/combat/monster4/Sprites/Attack2.png');background-size:700% 100%;background-position:0% center;background-repeat:no-repeat;"></div>
+    <div class="label">atk2 f1</div>
+  </div>
+</div>
+</body>
+</html>
