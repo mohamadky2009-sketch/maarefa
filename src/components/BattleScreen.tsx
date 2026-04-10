@@ -345,16 +345,16 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
     setShowResult('wrong');
 
-    // 1. Run toward hero (monster flipped to face right)
+    // 1. Run toward hero — monster faces LEFT (toward hero) = flipped:false (default)
     setMonsterAction('run');
-    setMonsterFlipped(true);
+    setMonsterFlipped(false);
     setMonsterPos('charging');
 
-    // 2. Arrive → attack
+    // 2. Arrive → attack, still facing left toward hero
     addTimer(() => {
       setMonsterPos('atEnemy');
       setMonsterAction('attack');
-      setMonsterFlipped(true);
+      setMonsterFlipped(false);
     }, CHARGE_MS);
 
     // 3. Hero takes hit
@@ -366,14 +366,14 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
     addTimer(() => setScreenShake(false), CHARGE_MS + halfAtk + 200);
 
-    // 4. Return
+    // 4. Return — monster faces RIGHT (moving away from hero) = flipped:true
     addTimer(() => {
       setMonsterAction('run');
-      setMonsterFlipped(false);
+      setMonsterFlipped(true);
       setMonsterPos('returning');
     }, CHARGE_MS + atkMs);
 
-    // 5. Home
+    // 5. Home — back to default facing left
     addTimer(() => {
       setMonsterAction('idle');
       setMonsterFlipped(false);
@@ -384,17 +384,15 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   };
 
   // ── Position → CSS ────────────────────────────────────────────────────────
+  // NOTE: We always keep 'transition' set (never 'none') so the browser is
+  // always ready to animate. We just switch the duration to 0ms for instant.
   const CHARGE_DIST = 'clamp(110px, 27vw, 370px)';
 
-  const heroTransformX  = (heroPos  === 'charging' || heroPos  === 'atEnemy')  ? `translateX(${CHARGE_DIST})`  : 'translateX(0)';
-  const heroTransition  = heroPos   === 'charging'  ? `transform ${CHARGE_MS}ms ease-in-out`
-                        : heroPos   === 'returning'  ? `transform ${RETURN_MS}ms ease-in-out`
-                        : 'none';
+  const heroTransformX = (heroPos === 'charging' || heroPos === 'atEnemy') ? `translateX(${CHARGE_DIST})` : 'translateX(0)';
+  const heroMoveDur    = heroPos === 'charging' ? CHARGE_MS : heroPos === 'returning' ? RETURN_MS : 0;
 
-  const monTransformX   = (monsterPos === 'charging' || monsterPos === 'atEnemy') ? `translateX(-${CHARGE_DIST})` : 'translateX(0)';
-  const monTransition   = monsterPos === 'charging'  ? `transform ${CHARGE_MS}ms ease-in-out`
-                        : monsterPos === 'returning'  ? `transform ${RETURN_MS}ms ease-in-out`
-                        : 'none';
+  const monTransformX  = (monsterPos === 'charging' || monsterPos === 'atEnemy') ? `translateX(-${CHARGE_DIST})` : 'translateX(0)';
+  const monMoveDur     = monsterPos === 'charging' ? CHARGE_MS : monsterPos === 'returning' ? RETURN_MS : 0;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -478,8 +476,15 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
         }}
       >
         {/* Hero — left */}
-        <div style={{ transform: heroTransformX, transition: heroTransition, willChange: 'transform' }}>
+        <div style={{
+          transform:          heroTransformX,
+          transitionProperty: 'transform',
+          transitionTimingFunction: 'ease-in-out',
+          transitionDuration: `${heroMoveDur}ms`,
+          willChange:         'transform',
+        }}>
           <DynamicSprite
+            key={heroAction}
             folder={heroData.folder} action={heroAction}
             frames={heroFrames}     isHero={true}
             type="sheet"            flipped={heroFlipped}
@@ -496,8 +501,15 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
               <span className="absolute bottom-[28%] left-[38%] text-xl" style={{ animation: 'bsPop 0.3s 0.1s ease both', opacity: 0 }}>✨</span>
             </div>
           )}
-          <div style={{ transform: monTransformX, transition: monTransition, willChange: 'transform' }}>
+          <div style={{
+            transform:          monTransformX,
+            transitionProperty: 'transform',
+            transitionTimingFunction: 'ease-in-out',
+            transitionDuration: `${monMoveDur}ms`,
+            willChange:         'transform',
+          }}>
             <DynamicSprite
+              key={monsterAction}
               folder={monster.folder} action={monsterAction}
               frames={monster.frames} isHero={false}
               type={monster.type}     flipped={monsterFlipped}
