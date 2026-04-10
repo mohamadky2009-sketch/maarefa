@@ -173,7 +173,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-between overflow-hidden">
+    <div dir="ltr" className="relative min-h-screen flex flex-col items-center justify-between overflow-hidden">
 
       {/* ── Parallax background ── */}
       <div
