@@ -136,12 +136,15 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                 }}
                 className={`relative flex flex-col items-center group transition-all ${
                   isZooming 
-                    ? 'duration-[800ms] scale-[15] opacity-0 z-[100] pointer-events-none' 
+                    ? 'scale-[15] opacity-0 z-[100] pointer-events-none' 
                     : 'duration-500'
                 } ${
                   unlocked && !isZooming ? 'hover:scale-110 cursor-pointer' : (!isZooming ? 'opacity-80 cursor-not-allowed' : '')
                 }`}
-                style={!isZooming ? { animation: `planet-orbit 6s ease-in-out ${delay}s infinite` } : {}}
+                style={{
+                  transitionDuration: isZooming ? '800ms' : undefined,
+                  ...(!isZooming ? { animation: `planet-orbit 6s ease-in-out ${delay}s infinite` } : {}),
+                }}
               >
                 <div className="relative flex justify-center items-center">
                   <div className={`absolute inset-0 rounded-full blur-[40px] transition-all duration-500 ${
