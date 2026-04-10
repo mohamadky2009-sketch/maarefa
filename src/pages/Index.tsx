@@ -53,9 +53,6 @@ const GameApp = () => {
           hp: currentPlayer.maxHp,
         });
         setScreen({ type: 'planets' });
-      } else {
-        alert("تهانينا! لقد أنقذت المجرة ووصلت إلى قلب الشمس!");
-        setScreen({ type: 'planets' });
       }
     } else {
       const nextIslandGlobalId = currentPlanetIslands[islandIndexInPlanet + 1].id;
@@ -105,7 +102,6 @@ const GameApp = () => {
           onVictory={() => handleVictory(screen.planetId, screen.islandId)}
           // إضافة onDefeat لحل المشكلة (يرجع اللاعب للخريطة عند الخسارة)
           onDefeat={() => {
-            alert("للأسف خسرت المعركة! حاول مرة أخرى.");
             setScreen({ type: 'islands', planetId: screen.planetId });
           }}
         />
