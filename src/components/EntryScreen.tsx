@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
-import { CHARACTERS, createPlayer, playSound } from '@/lib/gameState';
+import { CHARACTERS, playSound } from '@/lib/gameState';
 import StarField from './StarField';
 import FloatingAstronaut from './FloatingAstronaut';
 import FloatingRocket from './FloatingRocket';
@@ -90,7 +90,7 @@ const HeroCard = ({ character, isSelected, onClick }: any) => {
 // 3. الشاشة الرئيسية مع منطق الانتقال للكواكب
 // ==========================================
 const EntryScreen = ({ onAdmin }: { onAdmin: () => void }) => {
-  const { updatePlayer } = useGame();
+  const { registerPlayer } = useGame();
   
   const [phase, setPhase] = useState<'intro' | 'setup'>('intro');
   const [step, setStep] = useState<'hero' | 'name' | 'email'>('hero');
@@ -111,11 +111,7 @@ const EntryScreen = ({ onAdmin }: { onAdmin: () => void }) => {
       }
 
       playSound('victory');
-
-      // الربط السحري: نقوم بإنشاء اللاعب وتحديث الحالة العامة
-      // هذا السطر سيجعل App.tsx يفهم أن اللاعب سجل دخوله ويفتح شاشة الكواكب فوراً
-      const newPlayer = createPlayer(formData.name, formData.email, formData.heroId);
-      updatePlayer(newPlayer);
+      registerPlayer(formData.name, formData.email, formData.heroId);
     }
   };
 
