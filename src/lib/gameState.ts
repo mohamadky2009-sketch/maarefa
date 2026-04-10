@@ -349,8 +349,8 @@ const RAW_ISLANDS: Array<Omit<Island, 'image' | 'background'>> = [
 
 export const ISLANDS: Island[] = RAW_ISLANDS.map((isl) => ({
   ...isl,
-  image: `/src/assets/islands/island${isl.id + 1}.png`,
-  background: '/src/assets/islands/islands-bg.png',
+  image: `/src/assets/combat/monster4/islands/island${isl.id + 1}.png`,
+  background: `/src/assets/combat/monster4/islands/island${isl.id + 1}.png`,
 }));
 
 // ===================================================================

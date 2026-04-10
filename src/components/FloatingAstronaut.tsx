@@ -38,8 +38,8 @@ const FloatingAstronaut = () => {
   return (
     <div
       ref={ref}
-      className="fixed z-20 pointer-events-none"
-      style={{ left: '50%', top: '50%' }}
+      className="fixed pointer-events-none"
+      style={{ left: '50%', top: '50%', zIndex: 2 }}
     >
       {/* التعديل هنا: تحديد طول وعرض ثابتين ومنع الانكماش نهائياً */}
       <img 

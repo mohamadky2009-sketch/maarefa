@@ -125,7 +125,7 @@ const EntryScreen = ({ onAdmin }: { onAdmin: () => void }) => {
 
       {/* ----------------- واجهة الصحيفة ----------------- */}
       {phase === 'intro' && (
-        <div className="relative flex items-center z-10 w-full max-w-4xl justify-center px-4">
+        <div className="relative flex items-center z-30 w-full max-w-4xl justify-center px-4">
           <MonsterGuard />
           
           <div className="animate-float z-30">
