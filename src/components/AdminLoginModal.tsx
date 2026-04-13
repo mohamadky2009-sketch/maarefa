@@ -11,7 +11,8 @@ const AdminLoginModal = ({ onClose, onSuccess }: Props) => {
   const [error, setError] = useState(false);
 
   const login = () => {
-    if (pass === 'admin123') {
+    // تم تغيير كلمة السر هنا إلى ggvvnn
+    if (pass === 'ggvvnn') {
       playSound('victory');
       onSuccess();
       onClose();

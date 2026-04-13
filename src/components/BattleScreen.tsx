@@ -28,25 +28,7 @@ const CHARGE_MS = 480;
 const RETURN_MS = 420;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ╔══════════════════════════════════════════════════════════════════════╗
-// ║  SPRITE SHEET DATA  —  exact pixel dimensions from PNG headers      ║
-// ║                                                                      ║
-// ║  frameH   = natural height of a single frame (px)                   ║
-// ║  sheetW   = natural width of the full sprite sheet per action (px)  ║
-// ║  From these two we derive: frameW = sheetW / frameCount             ║
-// ║                                                                      ║
-// ║  FACING DIRECTION (from visual sprite analysis):                    ║
-// ║   facesRight = true  → sprite image is drawn facing RIGHT           ║
-// ║   facesRight = false → sprite image is drawn facing LEFT            ║
-// ║                                                                      ║
-// ║   hero1  (wizard)      — attacks go RIGHT  → facesRight: true       ║
-// ║   hero2  (king)        — attacks go RIGHT  → facesRight: true       ║
-// ║   hero3  (samurai)     — attacks go RIGHT  → facesRight: true       ║
-// ║   monster1 (fire mage) — fire goes LEFT    → facesRight: false      ║
-// ║   monster2 (death)     — body faces LEFT   → facesRight: false      ║
-// ║   monster3 (dark lord) — runs LEFT         → facesRight: false      ║
-// ║   monster4 (knight)    — attacks go RIGHT  → facesRight: true       ║
-// ╚══════════════════════════════════════════════════════════════════════╝
+// SPRITE SHEET DATA
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface HeroConfig {
@@ -59,7 +41,7 @@ interface HeroConfig {
 const HERO_CONFIGS: Record<string, HeroConfig> = {
   hero1: {
     facesRight: true, frameH: 190,
-    frames: { idle: 7,  run: 10, attack: 10, attack2: 10, hurt: 5,  death: 9  },
+    frames: { idle: 6,  run: 8, attack: 8, attack2: 8, hurt: 4,  death: 7  },
     sheetW: { idle: 1386, run: 1848, attack: 1848, attack2: 1848, hurt: 924, death: 1617 },
   },
   hero2: {
@@ -109,9 +91,8 @@ const MONSTER_CONFIGS: MonsterConfig[] = [
     sheetW: { idle: 1980, run: 1440, attack: 1260, attack2: 1260, hurt: 720, death: 1980 },
   },
 ];
-
 // ─────────────────────────────────────────────────────────────────────────────
-// Path resolver — UNTOUCHED (DO NOT MODIFY)
+// Path resolver
 // ─────────────────────────────────────────────────────────────────────────────
 function getSpritePath(folder: string, type: string, action: ActionState, frame: number): string {
   if (type === 'individual') {
@@ -152,15 +133,7 @@ function buildPreloadList(heroFolder: string, monster: MonsterConfig, bgUrl: str
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DynamicSprite  —  PIXEL-PERFECT sprite sheet rendering — DO NOT MODIFY
-//
-//  Scale formula: scale = DISPLAY_H / frameH
-//  bgW  = sheetW * scale
-//  bgX  = -(frame-1) * frameW * scale  (pixel offset — no % rounding)
-//
-//  Flip formula: scaleX = (isHero === (facesRight !== flipped)) ? 1 : -1
-//    • Hero on LEFT  must appear facing RIGHT
-//    • Monster on RIGHT must appear facing LEFT
+// DynamicSprite
 // ─────────────────────────────────────────────────────────────────────────────
 const DISPLAY_H = 256;
 
@@ -192,7 +165,6 @@ const DynamicSprite = memo(({
   const scaleX     = (isHero === (facesRight !== flipped)) ? 1 : -1;
   const hurtFilter = isHurt ? 'brightness(10) saturate(0)' : 'none';
 
-  // ── Individual sprite (monster2) ──────────────────────────────────────────
   if (type === 'individual') {
     const src   = getSpritePath(folder, type, action, frame);
     const scale = DISPLAY_H / MONSTER2_FRAME_H;
@@ -207,12 +179,11 @@ const DynamicSprite = memo(({
         imageRendering:     'pixelated',
         transform:          `scaleX(${scaleX})`,
         filter:             hurtFilter,
-        willChange:         'filter',
+        willChange:         'filter, transform',
       }} />
     );
   }
 
-  // ── Sprite sheet — PIXEL-PERFECT ──────────────────────────────────────────
   const src     = getSpritePath(folder, type, action, frame);
   const scale   = DISPLAY_H / frameH;
   const frameW  = sheetW / frameCount;
@@ -231,11 +202,10 @@ const DynamicSprite = memo(({
       imageRendering:     'pixelated',
       transform:          `scaleX(${scaleX})`,
       filter:             hurtFilter,
-      willChange:         'background-position, filter',
+      willChange:         'background-position, filter, transform',
     }} />
   );
 });
-
 // ─────────────────────────────────────────────────────────────────────────────
 // BattleScreen
 // ─────────────────────────────────────────────────────────────────────────────
@@ -251,7 +221,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   );
   const bgUrl = `/src/assets/combat/monster4/islands/island${islandId + 1}.png`;
 
-  // ── Preloading ─────────────────────────────────────────────────────────────
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!heroData || !island) return;
@@ -259,13 +228,11 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       .then(() => setReady(true));
   }, []);
 
-  // ── HP ─────────────────────────────────────────────────────────────────────
   const [heroHP,         setHeroHP]         = useState(100);
   const [monsterHP,      setMonsterHP]      = useState(100);
   const [heroHPGhost,    setHeroHPGhost]    = useState(100);
   const [monsterHPGhost, setMonsterHPGhost] = useState(100);
 
-  // ── Animation state ────────────────────────────────────────────────────────
   const [heroAction,     setHeroAction]     = useState<ActionState>('idle');
   const [monsterAction,  setMonsterAction]  = useState<ActionState>('idle');
   const [heroPos,        setHeroPos]        = useState<CharPos>('home');
@@ -276,7 +243,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   const [heroHurt,       setHeroHurt]       = useState(false);
   const [monsterHurt,    setMonsterHurt]    = useState(false);
 
-  // ── VFX ────────────────────────────────────────────────────────────────────
   const [showResult,     setShowResult]     = useState<'none' | 'correct' | 'wrong'>('none');
   const [showImpact,     setShowImpact]     = useState(false);
   const [showWhiteFlash, setShowWhiteFlash] = useState(false);
@@ -284,7 +250,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   const [screenShake,    setScreenShake]    = useState(false);
   const [gameResult,     setGameResult]     = useState<GameResult>('none');
 
-  // ── Floating damage numbers ────────────────────────────────────────────────
   const [floatNums, setFloatNums] = useState<FloatNum[]>([]);
   const floatId = useRef(0);
   const spawnFloat = useCallback((value: number, target: 'hero' | 'monster') => {
@@ -293,18 +258,15 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
     setTimeout(() => setFloatNums(prev => prev.filter(f => f.id !== id)), 1200);
   }, []);
 
-  // ── Combo ──────────────────────────────────────────────────────────────────
   const [combo,      setCombo]      = useState(0);
   const [showCombo,  setShowCombo]  = useState(false);
   const comboTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [wrongAnswers,   setWrongAnswers]   = useState(0);
   const [damageDealt,    setDamageDealt]    = useState(0);
   const [damageReceived, setDamageReceived] = useState(0);
 
-  // ── Timer management ───────────────────────────────────────────────────────
   const timers   = useRef<ReturnType<typeof setTimeout>[]>([]);
   const gameOver = useRef(false);
   const addTimer = useCallback((fn: () => void, ms: number) => {
@@ -313,11 +275,9 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   }, []);
   useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
 
-  // ── Ghost HP delay ─────────────────────────────────────────────────────────
   useEffect(() => { const t = setTimeout(() => setHeroHPGhost(heroHP),       900); return () => clearTimeout(t); }, [heroHP]);
   useEffect(() => { const t = setTimeout(() => setMonsterHPGhost(monsterHP), 900); return () => clearTimeout(t); }, [monsterHP]);
 
-  // ── Death detection ────────────────────────────────────────────────────────
   useEffect(() => {
     if (monsterHP <= 0 && !gameOver.current) {
       gameOver.current = true;
@@ -334,7 +294,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
     }
   }, [heroHP]);
 
-  // ── Guards ─────────────────────────────────────────────────────────────────
   if (!currentPlayer) return <Err msg="بيانات اللاعب غير موجودة!" />;
   if (!island)        return <Err msg="الجزيرة غير موجودة!" />;
   if (!heroData)      return <Err msg="بيانات البطل غير موجودة!" />;
@@ -356,7 +315,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   const isLocked = heroAction !== 'idle' || monsterAction !== 'idle' || gameResult !== 'none';
 
-  // ── Answer handler ─────────────────────────────────────────────────────────
   const handleAnswer = (index: number) => {
     if (isLocked) return;
     const q     = island.question as any;
@@ -379,7 +337,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
     }
   };
 
-  // ── Hero Attack ────────────────────────────────────────────────────────────
   const doHeroAttack = () => {
     const variant = attackVar;
     const atkMs   = heroConfig.frames[variant] * FRAME_MS;
@@ -420,7 +377,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
     }, retreatAt + RETURN_MS);
   };
 
-  // ── Monster Attack ─────────────────────────────────────────────────────────
   const doMonsterAttack = () => {
     const atkMs   = monster.frames.attack * FRAME_MS;
     const halfAtk = Math.floor(atkMs / 2);
@@ -456,8 +412,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
     }, retreatAt + RETURN_MS);
   };
 
-  // ── Charge distances (CSS) ─────────────────────────────────────────────────
-  // Hero moves right toward monster; Monster moves left toward hero
   const CHARGE_DIST = 'clamp(40px, 12vw, 240px)';
   const heroChargeX  = (heroPos    === 'charging' || heroPos    === 'atEnemy')
     ? `translateX(${CHARGE_DIST})`  : 'translateX(0)';
@@ -466,7 +420,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   const heroMoveDur  = heroPos    === 'charging' ? CHARGE_MS : heroPos    === 'returning' ? RETURN_MS : 0;
   const monMoveDur   = monsterPos === 'charging' ? CHARGE_MS : monsterPos === 'returning' ? RETURN_MS : 0;
 
-  // HP colors
   const heroPct      = heroHP / 100;
   const monPct       = monsterHP / 100;
   const heroBarColor = heroPct > 0.5 ? '#22d3ee' : heroPct > 0.25 ? '#f59e0b' : '#ef4444';
@@ -475,24 +428,19 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   const accuracy = correctAnswers + wrongAnswers > 0
     ? Math.round(correctAnswers / (correctAnswers + wrongAnswers) * 100) : 0;
 
-  // ── Framer-motion variants ─────────────────────────────────────────────────
-  // Idle: gentle Y-axis breathing (5px)
   const idleBreath = {
     animate: { y: [0, -5, 0] },
     transition: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' as const },
   };
-  // Hurt: rapid X shake
   const hurtShake = {
     animate: { x: [-7, 7, -6, 6, -4, 4, -2, 0] },
     transition: { duration: 0.35, ease: 'linear' as const },
   };
-  // Idle-stop: snap back to 0
   const idleStop = { animate: { y: 0 }, transition: { duration: 0.15 } };
 
   const heroMotion    = heroHurt    ? hurtShake : heroAction    === 'idle' ? idleBreath : idleStop;
   const monsterMotion = monsterHurt ? hurtShake : monsterAction === 'idle' ? idleBreath : idleStop;
-
-  return (
+    return (
     <div
       dir="ltr"
       className="relative w-full bg-black"
@@ -519,8 +467,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
       {/* ══════ HP BARS ══════════════════════════════════════════════════════ */}
       <div className="relative z-20 w-full max-w-6xl mx-auto flex items-center gap-1 px-2 pt-1.5 pb-0.5 sm:gap-3 sm:px-4 sm:pt-3">
-
-        {/* Hero bar */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center mb-0.5">
             <span className="font-black truncate" style={{ fontSize: 'clamp(9px,2.5vw,13px)', color: '#67e8f9', textShadow: '0 0 10px #06b6d4' }}>
@@ -538,17 +484,14 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
               boxShadow: `0 0 12px ${heroBarColor}44, inset 0 1px 0 rgba(255,255,255,0.07)`,
               animation: heroHP < 30 ? 'bsCritPulse 0.7s ease-in-out infinite' : 'none',
             }}>
-            {/* Ghost */}
             <div className="absolute inset-y-0 left-0 rounded-full"
               style={{ width: `${heroHPGhost}%`, background: 'rgba(255,255,255,0.16)', transition: 'width 900ms cubic-bezier(0.4,0,0.2,1)' }} />
-            {/* Bar */}
             <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
               style={{
                 width: `${heroHP}%`,
                 background: `linear-gradient(90deg,rgba(14,116,144,.9) 0%,${heroBarColor} 55%,rgba(207,250,254,.9) 100%)`,
                 boxShadow: `0 0 12px ${heroBarColor}, inset 0 1px 0 rgba(255,255,255,0.3)`,
               }} />
-            {/* Sheen */}
             <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
               <div className="absolute inset-y-0 w-6 bg-white/22 blur-sm skew-x-12" style={{ animation: 'bsScan 2.5s linear infinite' }} />
             </div>
@@ -559,7 +502,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
         <span className="shrink-0 select-none" style={{ fontSize: 'clamp(12px,3.5vw,20px)', textShadow: '0 0 16px rgba(255,255,255,.7)' }}>⚔️</span>
 
-        {/* Monster bar */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center mb-0.5">
             <span className="font-mono tabular-nums shrink-0 mr-1" style={{ fontSize: 'clamp(9px,2.5vw,12px)', color: monBarColor }}>
@@ -594,7 +536,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
         </div>
       </div>
 
-      {/* ══════ BATTLE ARENA — absolute character positions ═══════════════════ */}
+      {/* ══════ BATTLE ARENA ═════════════════════════════════════════════════ */}
       <div
         className="relative z-10 w-full transition-transform duration-500 overflow-hidden"
         style={{
@@ -603,7 +545,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           transformOrigin: 'center bottom',
         }}
       >
-        {/* Floating damage numbers */}
         {floatNums.map(fn => (
           <div key={fn.id}
             className="absolute pointer-events-none z-30 font-black select-none"
@@ -622,7 +563,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           </div>
         ))}
 
-        {/* ── HERO (LEFT) — absolute: left 15%, bottom 20% ─────────────────── */}
+        {/* ── HERO (LEFT) ── */}
         <div
           className="absolute"
           style={{
@@ -635,14 +576,10 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             willChange: 'transform',
           }}
         >
-          {/* framer-motion: idle breath + hurt shake */}
-          <motion.div
-            animate={heroMotion.animate}
-            transition={heroMotion.transition}
-          >
+          <motion.div animate={heroMotion.animate} transition={heroMotion.transition}>
             <div style={{ transform: 'scale(var(--sprite-scale, 1))', transformOrigin: 'bottom center' }}>
               <DynamicSprite
-                key={`hero-${heroAction}`}
+                key={`hero-${heroData.folder}`}
                 folder={heroData.folder}
                 action={heroAction}
                 frameCount={heroConfig.frames[heroAction]}
@@ -658,7 +595,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           </motion.div>
         </div>
 
-        {/* ── MONSTER (RIGHT) — absolute: right 15%, bottom 20% ───────────── */}
+        {/* ── MONSTER (RIGHT) ── */}
         <div
           className="absolute"
           style={{
@@ -671,7 +608,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             willChange: 'transform',
           }}
         >
-          {/* Impact VFX */}
           {showImpact && (
             <div className="absolute inset-0 z-20 pointer-events-none">
               <div className="absolute inset-0 rounded-xl bg-white/70" style={{ animation: 'bsFlash 0.22s ease forwards' }} />
@@ -681,14 +617,10 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             </div>
           )}
 
-          {/* framer-motion: idle breath + hurt shake */}
-          <motion.div
-            animate={monsterMotion.animate}
-            transition={monsterMotion.transition}
-          >
+          <motion.div animate={monsterMotion.animate} transition={monsterMotion.transition}>
             <div style={{ transform: 'scale(var(--sprite-scale, 1))', transformOrigin: 'bottom center' }}>
               <DynamicSprite
-                key={`mon-${monsterAction}`}
+                key={`monster-${monster.folder}`}
                 folder={monster.folder}
                 action={monsterAction}
                 frameCount={monster.frames[monsterAction]}
@@ -749,8 +681,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ══════ QUESTION PANEL — Glassmorphism ═══════════════════════════════ */}
+            {/* ══════ QUESTION PANEL ════════════════════════════════════════════════ */}
       <div className="relative z-20 w-full max-w-5xl mx-auto px-1.5 pb-1.5 mt-auto sm:px-3 sm:pb-3">
         <div
           className="relative rounded-2xl overflow-hidden"
@@ -767,10 +698,8 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             ].join(','),
           }}
         >
-          {/* Top edge glow */}
           <div className="h-px w-full" style={{ background: 'linear-gradient(90deg,transparent,rgba(6,182,212,0.95) 30%,rgba(34,211,238,1) 50%,rgba(6,182,212,0.95) 70%,transparent)', animation: 'bsGlowPulse 2s ease-in-out infinite' }} />
 
-          {/* HUD corner brackets */}
           {(['tl','tr','bl','br'] as const).map(c => (
             <div key={c} className="absolute pointer-events-none" style={{
               top:    c.startsWith('t') ? 0 : 'auto',
@@ -787,7 +716,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
           ))}
 
           <div className="p-2 sm:p-4 md:p-6">
-            {/* Question */}
             <p
               className="text-center font-bold text-white mb-2 leading-snug"
               dir="rtl"
@@ -796,7 +724,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
               {island.question.text}
             </p>
 
-            {/* Options */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
               {island.question.options.map((opt, i) => (
                 <button
@@ -812,16 +739,12 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
                     border: '1px solid rgba(6,182,212,0.14)',
                   }}
                 >
-                  {/* Hover fill */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl"
                     style={{ background: 'linear-gradient(135deg,rgba(6,182,212,0.18),rgba(6,182,212,0.04))' }} />
-                  {/* Hover border */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl"
                     style={{ boxShadow: 'inset 0 0 22px rgba(6,182,212,0.17), 0 0 14px rgba(6,182,212,0.12), 0 0 0 1px rgba(6,182,212,0.5)' }} />
-                  {/* Left accent */}
                   <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                     style={{ background: 'linear-gradient(180deg,transparent,rgba(6,182,212,0.95),transparent)' }} />
-                  {/* Scan shimmer */}
                   <div className="absolute inset-0 overflow-hidden opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300">
                     <div className="absolute inset-y-0 w-10 bg-white/12 blur-sm skew-x-12" style={{ animation: 'bsScan 1.4s linear infinite' }} />
                   </div>
@@ -847,7 +770,6 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             </div>
           </div>
 
-          {/* Bottom edge */}
           <div className="h-px w-full" style={{ background: 'linear-gradient(90deg,transparent,rgba(6,182,212,0.55) 40%,rgba(6,182,212,0.55) 60%,transparent)' }} />
         </div>
       </div>
@@ -930,7 +852,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Epic Victory / Defeat overlay — mobile-first bottom sheet
+// Epic Victory / Defeat overlay
 // ─────────────────────────────────────────────────────────────────────────────
 interface EpicModalProps {
   type: 'victory' | 'defeat'; monsterName: string;
@@ -956,7 +878,6 @@ const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageRecei
     >
       <div className="absolute inset-0" style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }} />
 
-      {/* Particles */}
       {parts.map((p, i) => (
         <span key={i} className="absolute pointer-events-none select-none"
           style={{
@@ -968,13 +889,11 @@ const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageRecei
           }}>{p}</span>
       ))}
 
-      {/* Ambient glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute rounded-full blur-3xl" style={{ width: 280, height: 280, top: -80, left: -80, background: `rgba(${rgb},.16)`, animation: 'bsGlowPulse 3s ease-in-out infinite' }} />
         <div className="absolute rounded-full blur-3xl" style={{ width: 280, height: 280, bottom: -80, right: -80, background: `rgba(${rgb},.11)`, animation: 'bsGlowPulse 3.5s .6s ease-in-out infinite' }} />
       </div>
 
-      {/* Card */}
       <motion.div
         initial={{ y: 60, opacity: 0, scale: 0.92 }}
         animate={{ y: 0,  opacity: 1, scale: 1 }}
@@ -989,7 +908,6 @@ const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageRecei
       >
         <div className="h-0.5" style={{ background: `linear-gradient(90deg,transparent,${accent},transparent)` }} />
 
-        {/* Label bar */}
         <div className="flex items-center justify-center gap-2 pt-3 pb-1 px-5">
           <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg,transparent,rgba(${rgb},.4))` }} />
           <span className="text-[9px] sm:text-xs font-black tracking-widest uppercase opacity-50" style={{ color: accent }}>
@@ -999,7 +917,6 @@ const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageRecei
         </div>
 
         <div className="px-4 sm:px-6 pt-1 pb-5">
-          {/* Icon + Title */}
           <div className="text-center mb-3">
             <div style={{ fontSize: 'clamp(2.5rem,10vw,4rem)', animation: 'bsFloat 2.5s ease-in-out infinite' }}>{isV ? '🏆' : '💀'}</div>
             <h2 className="font-black tracking-tight mb-0.5"
@@ -1011,7 +928,6 @@ const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageRecei
             </p>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 gap-2 mb-3">
             {[
               { label: 'إجابات صحيحة', value: correct,             color: '#4ade80', icon: '✅' },
@@ -1033,7 +949,6 @@ const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageRecei
             ))}
           </div>
 
-          {/* Accuracy bar */}
           <div className="mb-4 p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <div className="flex justify-between items-center mb-1.5">
               <span className="text-white/40" style={{ fontSize: 'clamp(9px,2vw,12px)' }} dir="rtl">الدقة</span>
@@ -1056,7 +971,6 @@ const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageRecei
             </div>
           </div>
 
-          {/* CTA */}
           <button
             onClick={onAction}
             className="w-full rounded-2xl font-black tracking-wide active:scale-95 transition-all duration-150 relative overflow-hidden group"
