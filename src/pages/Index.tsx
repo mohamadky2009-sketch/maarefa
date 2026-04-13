@@ -6,6 +6,7 @@ import PlanetMap from '@/components/PlanetMap';
 import IslandMap from '@/components/IslandMap';
 import BattleScreen from '@/components/BattleScreen';
 import AdminPanel from '@/components/AdminPanel';
+import AdminLoginModal from '@/components/AdminLoginModal';
 import { ISLANDS, PLANETS } from '@/lib/gameState';
 
 type Screen =
@@ -19,6 +20,7 @@ type Screen =
 const GameApp = () => {
   const { currentPlayer, updatePlayer } = useGame();
   const [screen, setScreen] = useState<Screen>({ type: 'entry' });
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   // Auto-advance past entry for already-logged-in players
   useEffect(() => {
@@ -64,20 +66,28 @@ const GameApp = () => {
 
       {/* First-time entry (registration) */}
       {screen.type === 'entry' && (
-        <EntryScreen onAdmin={() => setScreen({ type: 'admin' })} />
+        <EntryScreen onAdmin={() => setShowAdminLogin(true)} />
       )}
 
       {/* Returning player — scroll home screen */}
       {screen.type === 'scroll' && (
         <EntryScreen
           loggedIn
-          onAdmin={() => setScreen({ type: 'admin' })}
+          onAdmin={() => setShowAdminLogin(true)}
           onPlay={() => setScreen({ type: 'planets' })}
         />
       )}
 
       {screen.type === 'admin' && (
         <AdminPanel onBack={() => setScreen({ type: 'entry' })} />
+      )}
+
+      {/* Admin password gate — shown over any screen */}
+      {showAdminLogin && (
+        <AdminLoginModal
+          onClose={() => setShowAdminLogin(false)}
+          onSuccess={() => { setShowAdminLogin(false); setScreen({ type: 'admin' }); }}
+        />
       )}
 
       {screen.type === 'planets' && (
