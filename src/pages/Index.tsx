@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useState, useEffect } from 'react';
 import { GameProvider, useGame } from '@/context/GameContext';
 import StarField from '@/components/StarField';
