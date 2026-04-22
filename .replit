@@ -67,6 +67,5 @@ outputType = "webview"
 
 [deployment]
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "npm run dev"]
 deploymentTarget = "static"
 publicDir = "dist"
