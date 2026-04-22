@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useGame } from '@/context/GameContext';
-import { ISLANDS, PLANETS, CHARACTERS, Island, playSound, Question, MONSTER_NAMES } from '@/lib/gameState';
+import { ISLANDS, PLANETS, CHARACTERS, Island, IslandQuestion, playSound, Question, MONSTER_NAMES } from '@/lib/gameState';
+import { ISLAND_QUESTIONS } from '@/lib/islandQuestions';
 
-type Tab = 'islands' | 'questions' | 'players' | 'battle' | 'shop';
+type Tab = 'islands' | 'bank' | 'questions' | 'players' | 'battle' | 'shop';
 
 // ─── Island editor row ────────────────────────────────────────────
 interface IslandEditorProps {
@@ -106,6 +107,11 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const [qOpts, setQOpts] = useState(['', '', '', '']);
   const [qCorrect, setQCorrect] = useState(0);
 
+  // ── Bank tab state ──
+  const [bankIslandId, setBankIslandId] = useState<number>(0);
+  const [editingBankIdx, setEditingBankIdx] = useState<number | null>(null);
+  const [bankDraft, setBankDraft] = useState<IslandQuestion>({ text: '', options: ['', '', '', ''], correctIndex: 0 });
+
   // ─── Handlers ────────────────────────────────────────────────────
   const handleSaveIsland = (updated: Island) => {
     const isCustom = state.customIslands.some(ci => ci.id === updated.id);
@@ -174,6 +180,74 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     updateState(s => ({ ...s, questions: s.questions.filter(q => q.id !== id) }));
   };
 
+  // ── Bank handlers ──
+  const getBankFor = (islandId: number): IslandQuestion[] => {
+    const overrides = state.customIslandQuestions?.[islandId];
+    if (overrides && overrides.length > 0) return overrides;
+    return ISLAND_QUESTIONS[islandId] ?? [];
+  };
+
+  const writeBank = (islandId: number, list: IslandQuestion[]) => {
+    updateState(s => ({
+      ...s,
+      customIslandQuestions: { ...s.customIslandQuestions, [islandId]: list },
+    }));
+  };
+
+  const startEditBank = (idx: number) => {
+    const list = getBankFor(bankIslandId);
+    const q = list[idx];
+    if (!q) return;
+    setBankDraft({ text: q.text, options: [...q.options], correctIndex: q.correctIndex });
+    setEditingBankIdx(idx);
+  };
+
+  const startNewBankQuestion = () => {
+    setBankDraft({ text: '', options: ['', '', '', ''], correctIndex: 0 });
+    setEditingBankIdx(-1);
+  };
+
+  const cancelBankEdit = () => {
+    setEditingBankIdx(null);
+    setBankDraft({ text: '', options: ['', '', '', ''], correctIndex: 0 });
+  };
+
+  const saveBankDraft = () => {
+    if (!bankDraft.text.trim() || bankDraft.options.some(o => !o.trim())) return;
+    playSound('correct');
+    const list = [...getBankFor(bankIslandId)];
+    const cleaned: IslandQuestion = {
+      text: bankDraft.text.trim(),
+      options: bankDraft.options.map(o => o.trim()),
+      correctIndex: bankDraft.correctIndex,
+    };
+    if (editingBankIdx === -1 || editingBankIdx === null) {
+      list.push(cleaned);
+    } else {
+      list[editingBankIdx] = cleaned;
+    }
+    writeBank(bankIslandId, list);
+    cancelBankEdit();
+  };
+
+  const deleteBankQuestion = (idx: number) => {
+    playSound('click');
+    const list = getBankFor(bankIslandId).filter((_, i) => i !== idx);
+    writeBank(bankIslandId, list);
+    if (editingBankIdx === idx) cancelBankEdit();
+  };
+
+  const resetBankToDefault = () => {
+    if (!confirm('استعادة بنك أسئلة هذه الجزيرة إلى القيم الأصلية؟ سيتم حذف أي تعديلات.')) return;
+    playSound('click');
+    updateState(s => {
+      const next = { ...s.customIslandQuestions };
+      delete next[bankIslandId];
+      return { ...s, customIslandQuestions: next };
+    });
+    cancelBankEdit();
+  };
+
   const toggleBan = (playerId: string) => {
     updateState(s => ({
       ...s,
@@ -185,7 +259,8 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const allIslands = [...ISLANDS, ...state.customIslands];
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'islands',   label: '🏝️ الجزر والأسئلة' },
+    { id: 'islands',   label: '🏝️ الجزر' },
+    { id: 'bank',      label: '🏦 بنك الأسئلة' },
     { id: 'questions', label: '➕ أسئلة إضافية' },
     { id: 'players',  label: '👥 اللاعبون' },
     { id: 'battle',   label: '⚔️ القتال' },
@@ -332,6 +407,155 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
             })}
           </div>
         )}
+
+        {/* ── Question bank tab ───────────────────────────────────── */}
+        {tab === 'bank' && (() => {
+          const bank = getBankFor(bankIslandId);
+          const isOverridden = !!state.customIslandQuestions?.[bankIslandId];
+          const selectedIsland = allIslands.find(is => is.id === bankIslandId);
+          return (
+            <div className="space-y-4">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <h3 className="font-bold">🏦 بنك الأسئلة لكل جزيرة</h3>
+                  <div className="flex gap-2 flex-wrap">
+                    <button onClick={startNewBankQuestion} className={btnPrimary}>+ سؤال جديد</button>
+                    {isOverridden && (
+                      <button
+                        onClick={resetBankToDefault}
+                        className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 font-bold text-sm transition-all"
+                      >
+                        ↺ استعادة الأصلي
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-white/40 text-xs">
+                  هذه الأسئلة تظهر للاعب بشكل عشوائي عند دخوله للمعركة في الجزيرة المختارة.
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <select
+                    value={PLANETS.find(p => allIslands.some(is => is.planetId === p.id && is.id === bankIslandId))?.id ?? 0}
+                    onChange={e => {
+                      const planetId = +e.target.value;
+                      const first = allIslands.find(is => is.planetId === planetId);
+                      if (first) { setBankIslandId(first.id); cancelBankEdit(); }
+                    }}
+                    className={inputCls}
+                  >
+                    {PLANETS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                  <select
+                    value={bankIslandId}
+                    onChange={e => { setBankIslandId(+e.target.value); cancelBankEdit(); }}
+                    className={inputCls}
+                  >
+                    {allIslands
+                      .filter(is => is.planetId === (PLANETS.find(p => allIslands.some(island => island.planetId === p.id && island.id === bankIslandId))?.id ?? 0))
+                      .map(is => <option key={is.id} value={is.id}>{is.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-white/50">
+                  <span>{isOverridden ? '✏️ معدّل' : '📚 الأصلي'}</span>
+                  <span>عدد الأسئلة: {bank.length}</span>
+                </div>
+              </div>
+
+              {/* Editor form */}
+              {editingBankIdx !== null && (
+                <div className="bg-white/5 border border-yellow-500/40 rounded-2xl p-5 space-y-3">
+                  <h4 className="font-bold text-yellow-400">
+                    {editingBankIdx === -1 ? '➕ إضافة سؤال جديد' : `✏️ تعديل السؤال رقم ${editingBankIdx + 1}`}
+                    {selectedIsland && <span className="text-white/40 text-xs font-normal mr-2">— {selectedIsland.name}</span>}
+                  </h4>
+                  <textarea
+                    value={bankDraft.text}
+                    onChange={e => setBankDraft(d => ({ ...d, text: e.target.value }))}
+                    rows={2}
+                    placeholder="نص السؤال..."
+                    className={`${inputCls} resize-none`}
+                  />
+                  {bankDraft.options.map((opt, i) => (
+                    <label key={i} className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="bank-correct"
+                        checked={bankDraft.correctIndex === i}
+                        onChange={() => setBankDraft(d => ({ ...d, correctIndex: i }))}
+                        className="accent-green-500 w-4 h-4 shrink-0"
+                      />
+                      <input
+                        value={opt}
+                        onChange={e => setBankDraft(d => ({
+                          ...d,
+                          options: d.options.map((x, j) => j === i ? e.target.value : x),
+                        }))}
+                        placeholder={`الخيار ${i + 1}`}
+                        className="flex-1 p-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none"
+                      />
+                      {bankDraft.correctIndex === i && <span className="text-green-400 text-xs font-bold shrink-0">✓ صحيح</span>}
+                    </label>
+                  ))}
+                  <div className="flex gap-2">
+                    <button onClick={saveBankDraft} className="px-5 py-2 rounded-xl bg-green-600 hover:bg-green-500 font-bold text-sm text-white transition-all">
+                      حفظ
+                    </button>
+                    <button onClick={cancelBankEdit} className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-sm text-white transition-all">
+                      إلغاء
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* List of bank questions */}
+              <div className="space-y-2">
+                {bank.length === 0 && (
+                  <p className="text-center text-white/40 py-10 text-sm">لا توجد أسئلة في هذه الجزيرة بعد</p>
+                )}
+                {bank.map((q, idx) => (
+                  <div key={idx} className="border border-white/10 rounded-xl bg-white/5 p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          onClick={() => startEditBank(idx)}
+                          className="px-3 py-1 rounded-lg bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 text-xs font-bold transition-all"
+                        >
+                          ✏️ تعديل
+                        </button>
+                        <button
+                          onClick={() => deleteBankQuestion(idx)}
+                          className="px-3 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-bold transition-all"
+                        >
+                          حذف
+                        </button>
+                      </div>
+                      <div className="flex-1 text-right">
+                        <p className="text-sm font-bold leading-relaxed">{idx + 1}. {q.text}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {q.options.map((opt, i) => (
+                        <div
+                          key={i}
+                          className={`p-2 rounded-lg text-right ${
+                            i === q.correctIndex
+                              ? 'bg-green-500/15 border border-green-500/40 text-green-300'
+                              : 'bg-white/5 border border-white/10 text-white/70'
+                          }`}
+                        >
+                          {i === q.correctIndex && '✓ '}{opt}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Extra questions tab ─────────────────────────────────── */}
         {tab === 'questions' && (

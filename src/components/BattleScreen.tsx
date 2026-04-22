@@ -223,10 +223,12 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   const bgUrl = `/src/assets/combat/monster4/islands/island${islandId + 1}.png`;
 
   const questionBank = useMemo(() => {
+    const overrides = state.customIslandQuestions?.[islandId];
+    if (overrides && overrides.length > 0) return overrides;
     const bank = ISLAND_QUESTIONS[islandId];
     if (bank && bank.length > 0) return bank;
     return island?.question ? [island.question] : [];
-  }, [islandId, island]);
+  }, [islandId, island, state.customIslandQuestions]);
 
   const [usedIndices, setUsedIndices] = useState<number[]>([]);
   const [currentQIdx, setCurrentQIdx] = useState<number>(() =>

@@ -405,6 +405,7 @@ export interface GameState {
   shopItems: ShopItem[];
   battleSettings: BattleSettings;
   customIslands: Island[];
+  customIslandQuestions: Record<number, IslandQuestion[]>;
 }
 
 // ===================================================================
@@ -447,6 +448,7 @@ export function loadGameState(): GameState {
           questionsPerGuard: bs.questionsPerGuard ?? {},
         },
         customIslands: parsed.customIslands ?? [],
+        customIslandQuestions: parsed.customIslandQuestions ?? {},
       };
     } catch { }
   }
@@ -460,6 +462,7 @@ export function loadGameState(): GameState {
     ],
     battleSettings: DEFAULT_BATTLE_SETTINGS,
     customIslands: [],
+    customIslandQuestions: {},
   };
 }
 
