@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '@/context/GameContext';
 import { ISLANDS, CHARACTERS } from '@/lib/gameState';
+import { ISLAND_QUESTIONS } from '@/lib/islandQuestions';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -221,6 +222,41 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
   );
   const bgUrl = `/src/assets/combat/monster4/islands/island${islandId + 1}.png`;
 
+  const questionBank = useMemo(() => {
+    const bank = ISLAND_QUESTIONS[islandId];
+    if (bank && bank.length > 0) return bank;
+    return island?.question ? [island.question] : [];
+  }, [islandId, island]);
+
+  const [usedIndices, setUsedIndices] = useState<number[]>([]);
+  const [currentQIdx, setCurrentQIdx] = useState<number>(() =>
+    questionBank.length > 0 ? Math.floor(Math.random() * questionBank.length) : 0
+  );
+  useEffect(() => {
+    if (questionBank.length === 0) return;
+    const start = Math.floor(Math.random() * questionBank.length);
+    setCurrentQIdx(start);
+    setUsedIndices([start]);
+  }, [questionBank]);
+
+  const pickNextQuestion = useCallback(() => {
+    if (questionBank.length <= 1) return;
+    const remaining = questionBank
+      .map((_, i) => i)
+      .filter(i => !usedIndices.includes(i));
+    if (remaining.length === 0) {
+      const next = Math.floor(Math.random() * questionBank.length);
+      setUsedIndices([next]);
+      setCurrentQIdx(next);
+      return;
+    }
+    const next = remaining[Math.floor(Math.random() * remaining.length)];
+    setUsedIndices(prev => [...prev, next]);
+    setCurrentQIdx(next);
+  }, [questionBank, usedIndices]);
+
+  const currentQuestion = questionBank[currentQIdx] ?? island?.question;
+
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!heroData || !island) return;
@@ -317,7 +353,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   const handleAnswer = (index: number) => {
     if (isLocked) return;
-    const q     = island.question as any;
+    const q     = (currentQuestion ?? island.question) as any;
     const right = q.correctIndex ?? q.correctAnswerIndex ?? q.correctOption ?? 0;
     if (index === right) {
       setCorrectAnswers(p => p + 1);
@@ -335,6 +371,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       setShowCombo(false);
       doMonsterAttack();
     }
+    pickNextQuestion();
   };
 
   const doHeroAttack = () => {
@@ -721,11 +758,11 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
               dir="rtl"
               style={{ fontSize: 'clamp(0.72rem,3.8vw,1.05rem)', textShadow: '0 0 18px rgba(6,182,212,0.25)' }}
             >
-              {island.question.text}
+              {(currentQuestion ?? island.question).text}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-              {island.question.options.map((opt, i) => (
+              {(currentQuestion ?? island.question).options.map((opt, i) => (
                 <button
                   key={i}
                   onClick={() => handleAnswer(i)}
