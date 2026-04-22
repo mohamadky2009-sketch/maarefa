@@ -66,6 +66,7 @@ waitForPort = 5000
 outputType = "webview"
 
 [deployment]
-build = ["sh", "-c", "npm run build"]
+build = ["npm", "run", "build"]
 run = ["sh", "-c", "npm run dev"]
-deploymentTarget = "cloudrun"
+deploymentTarget = "static"
+publicDir = "dist"
