@@ -384,7 +384,16 @@ export interface BattleSettings {
   playerAttack: number;
   guardAttack: number;
   questionsPerGuard: Record<string, number>;
+  heroAttack: Record<string, number>;
+  monsterAttack: Record<string, number>;
 }
+
+export const MONSTER_NAMES: Record<string, string> = {
+  monster1: 'ساحر النار',
+  monster2: 'جالب الموت',
+  monster3: 'سيد الظلام',
+  monster4: 'الفارس المتمرد',
+};
 
 // ===================================================================
 // 9. حالة اللعبة الكاملة
@@ -401,10 +410,25 @@ export interface GameState {
 // ===================================================================
 // 10. تحميل / حفظ الحالة
 // ===================================================================
+const DEFAULT_HERO_ATTACK: Record<string, number> = {
+  hero1: 50,
+  hero2: 55,
+  hero3: 45,
+};
+
+const DEFAULT_MONSTER_ATTACK: Record<string, number> = {
+  monster1: 30,
+  monster2: 25,
+  monster3: 28,
+  monster4: 22,
+};
+
 const DEFAULT_BATTLE_SETTINGS: BattleSettings = {
-  playerAttack: 34,
+  playerAttack: 50,
   guardAttack: 25,
   questionsPerGuard: {},
+  heroAttack: { ...DEFAULT_HERO_ATTACK },
+  monsterAttack: { ...DEFAULT_MONSTER_ATTACK },
 };
 
 export function loadGameState(): GameState {
@@ -412,9 +436,16 @@ export function loadGameState(): GameState {
   if (saved) {
     try {
       const parsed = JSON.parse(saved) as GameState;
+      const bs = parsed.battleSettings ?? DEFAULT_BATTLE_SETTINGS;
       return {
         ...parsed,
-        battleSettings: parsed.battleSettings ?? DEFAULT_BATTLE_SETTINGS,
+        battleSettings: {
+          ...DEFAULT_BATTLE_SETTINGS,
+          ...bs,
+          heroAttack: { ...DEFAULT_HERO_ATTACK, ...(bs.heroAttack ?? {}) },
+          monsterAttack: { ...DEFAULT_MONSTER_ATTACK, ...(bs.monsterAttack ?? {}) },
+          questionsPerGuard: bs.questionsPerGuard ?? {},
+        },
         customIslands: parsed.customIslands ?? [],
       };
     } catch { }

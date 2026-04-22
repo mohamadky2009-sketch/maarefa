@@ -33,8 +33,17 @@ entry → planets → islands → battle
 | `src/components/BattleScreen.tsx` | Full combat engine — DynamicSprite is pixel-perfect, do NOT modify getSpritePath or DynamicSprite logic |
 | `src/components/IslandMap.tsx` | Zig-zag island selection |
 | `src/components/PlanetMap.tsx` | Planet selection screen |
-| `src/lib/gameState.ts` | All game data: planets, islands, questions, characters |
+| `src/lib/gameState.ts` | All game data: planets, islands, questions, characters, battle settings |
 | `src/context/GameContext.tsx` | Global player state |
+| `src/components/AdminPanel.tsx` | Admin dashboard — edit islands, questions, players, per-hero/per-monster attack, shop |
+
+## Admin → Battle Wiring
+
+The admin "⚔️ القتال" tab now controls real damage:
+- `battleSettings.heroAttack[heroFolder]` — damage each hero deals (hero1/hero2/hero3)
+- `battleSettings.monsterAttack[monsterFolder]` — damage each monster deals (monster1–monster4)
+- Falls back to `playerAttack` / `guardAttack` defaults if a specific value is missing
+- `BattleScreen` reads these from `useGame().state.battleSettings` at attack time
 
 ## Sprite System (BattleScreen — STRICT CONSTRAINTS)
 

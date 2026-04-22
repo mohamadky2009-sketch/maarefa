@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGame } from '@/context/GameContext';
-import { ISLANDS, PLANETS, CHARACTERS, Island, playSound, Question } from '@/lib/gameState';
+import { ISLANDS, PLANETS, CHARACTERS, Island, playSound, Question, MONSTER_NAMES } from '@/lib/gameState';
 
 type Tab = 'islands' | 'questions' | 'players' | 'battle' | 'shop';
 
@@ -404,22 +404,87 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
 
         {/* ── Battle settings tab ─────────────────────────────────── */}
         {tab === 'battle' && (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-6">
             <h3 className="font-bold">إعدادات المعركة</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs text-white/50 block mb-1">قوة هجوم البطل</label>
-                <input type="number" value={state.battleSettings.playerAttack}
-                  onChange={e => updateState(s => ({ ...s, battleSettings: { ...s.battleSettings, playerAttack: +e.target.value } }))}
-                  className={inputCls}
-                />
+
+            <div>
+              <label className="text-xs text-white/50 block mb-2">قوة هجوم الافتراضية (يُستخدم إذا لم يكن للبطل/الوحش قيمة محددة)</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-white/50 block mb-1">قوة البطل الافتراضية</label>
+                  <input type="number" value={state.battleSettings.playerAttack}
+                    onChange={e => updateState(s => ({ ...s, battleSettings: { ...s.battleSettings, playerAttack: +e.target.value } }))}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-white/50 block mb-1">قوة الوحش الافتراضية</label>
+                  <input type="number" value={state.battleSettings.guardAttack}
+                    onChange={e => updateState(s => ({ ...s, battleSettings: { ...s.battleSettings, guardAttack: +e.target.value } }))}
+                    className={inputCls}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-xs text-white/50 block mb-1">قوة هجوم الحارس</label>
-                <input type="number" value={state.battleSettings.guardAttack}
-                  onChange={e => updateState(s => ({ ...s, battleSettings: { ...s.battleSettings, guardAttack: +e.target.value } }))}
-                  className={inputCls}
-                />
+            </div>
+
+            {/* Per-hero attack strength */}
+            <div>
+              <label className="text-xs text-white/50 block mb-2">⚔️ قوة هجوم كل بطل</label>
+              <div className="space-y-2">
+                {CHARACTERS.map(hero => (
+                  <div key={hero.id} className="flex items-center gap-3 justify-between bg-white/5 border border-white/10 rounded-xl p-3">
+                    <input
+                      type="number"
+                      min={0}
+                      value={state.battleSettings.heroAttack[hero.folder] ?? state.battleSettings.playerAttack}
+                      onChange={e => updateState(s => ({
+                        ...s,
+                        battleSettings: {
+                          ...s.battleSettings,
+                          heroAttack: { ...s.battleSettings.heroAttack, [hero.folder]: +e.target.value },
+                        },
+                      }))}
+                      className="w-20 p-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm text-center focus:outline-none focus:border-yellow-500/50"
+                    />
+                    <div className="text-right flex-1">
+                      <p className="text-sm font-bold">🦸 {hero.name}</p>
+                      <p className="text-xs text-white/40">{hero.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Per-monster attack strength */}
+            <div>
+              <label className="text-xs text-white/50 block mb-2">👹 قوة هجوم كل وحش</label>
+              <div className="space-y-2">
+                {Object.entries(MONSTER_NAMES).map(([folder, name]) => {
+                  const planetsUsing = PLANETS.filter(p => `monster${p.monster}` === folder).map(p => p.name);
+                  return (
+                    <div key={folder} className="flex items-center gap-3 justify-between bg-white/5 border border-white/10 rounded-xl p-3">
+                      <input
+                        type="number"
+                        min={0}
+                        value={state.battleSettings.monsterAttack[folder] ?? state.battleSettings.guardAttack}
+                        onChange={e => updateState(s => ({
+                          ...s,
+                          battleSettings: {
+                            ...s.battleSettings,
+                            monsterAttack: { ...s.battleSettings.monsterAttack, [folder]: +e.target.value },
+                          },
+                        }))}
+                        className="w-20 p-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm text-center focus:outline-none focus:border-red-500/50"
+                      />
+                      <div className="text-right flex-1">
+                        <p className="text-sm font-bold">{name}</p>
+                        <p className="text-xs text-white/40">
+                          {planetsUsing.length > 0 ? `يظهر في: ${planetsUsing.join('، ')}` : 'غير مستخدم حالياً'}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

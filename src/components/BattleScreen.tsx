@@ -211,7 +211,7 @@ const DynamicSprite = memo(({
 // BattleScreen
 // ─────────────────────────────────────────────────────────────────────────────
 const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
-  const { currentPlayer } = useGame();
+  const { currentPlayer, state } = useGame();
 
   const island     = ISLANDS.find(is => is.id === islandId);
   const heroData   = CHARACTERS.find(c => c.id === currentPlayer?.characterId);
@@ -395,7 +395,10 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       setScreenShake(true);
       setMonsterHurt(true);
       setMonsterAction('hurt');
-      const dmg = 50;
+      const heroFolder = heroData?.folder ?? 'hero1';
+      const dmg = state.battleSettings.heroAttack[heroFolder]
+        ?? state.battleSettings.playerAttack
+        ?? 50;
       setMonsterHP(p => Math.max(0, p - dmg));
       setDamageDealt(p => p + dmg);
       spawnFloat(dmg, 'monster');
@@ -431,7 +434,9 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       setHeroHurt(true);
       setShowWhiteFlash(true);
       setScreenShake(true);
-      const dmg = 25;
+      const dmg = state.battleSettings.monsterAttack[monster.folder]
+        ?? state.battleSettings.guardAttack
+        ?? 25;
       setHeroHP(p => Math.max(0, p - dmg));
       setDamageReceived(p => p + dmg);
       spawnFloat(dmg, 'hero');
