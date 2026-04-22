@@ -80,7 +80,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
               const offset = zigzagOffsets[i % 3];
 
               // island images are 1-indexed
-              const imgUrl = `/src/assets/combat/monster4/islands/island${island.id + 1}.png`;
+              const imgUrl = `/combat/monster4/islands/island${island.id + 1}.png`;
 
               return (
                 <div

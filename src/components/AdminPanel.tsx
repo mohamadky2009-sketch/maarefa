@@ -140,9 +140,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       id: newId,
       planetId: newIslandPlanet,
       name: newIslandName.trim(),
-      image: `/src/assets/islands/island${(newId % 31) + 1}.png`,
+      image: `/islands/island${(newId % 31) + 1}.png`,
       enemyFolder: `monster${PLANETS.find(p => p.id === newIslandPlanet)?.monster ?? 1}`,
-      background: '/src/assets/islands/islands-bg.png',
+      background: '/islands/islands-bg.png',
       question: {
         text: newIslandQ.trim(),
         options: newIslandOpts.map(o => o.trim()),

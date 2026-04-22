@@ -101,7 +101,7 @@ function getSpritePath(folder: string, type: string, action: ActionState, frame:
       idle: 'Idle', run: 'Idle', attack: 'Attack', attack2: 'Cast', hurt: 'Hurt', death: 'Death',
     };
     const n = nameMap[action] ?? 'Idle';
-    return `/src/assets/combat/${folder}/Individual Sprite/${n}/Bringer-of-Death_${n}_${frame}.png`;
+    return `/combat/${folder}/Individual Sprite/${n}/Bringer-of-Death_${n}_${frame}.png`;
   }
   const sub = (folder === 'hero3' || folder.startsWith('monster')) ? 'Sprites/' : '';
   let file = 'Idle.png';
@@ -110,7 +110,7 @@ function getSpritePath(folder: string, type: string, action: ActionState, frame:
   else if (action === 'attack2') { if (folder === 'hero2') file = 'Attack_2.png'; else if (folder === 'monster1') file = 'Attack.png'; else file = 'Attack2.png'; }
   else if (action === 'hurt')    { if (folder === 'hero1' || folder === 'hero2') file = 'Hit.png'; else if (folder === 'monster3') file = 'Take hit.png'; else file = 'Take Hit.png'; }
   else if (action === 'death')   file = 'Death.png';
-  return `/src/assets/combat/${folder}/${sub}${file}`;
+  return `/combat/${folder}/${sub}${file}`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -126,7 +126,7 @@ function buildPreloadList(heroFolder: string, monster: MonsterConfig, bgUrl: str
   all.forEach(a => paths.push(getSpritePath(heroFolder, 'sheet', a, 1)));
   if (monster.type === 'individual') {
     const sets: [string, number][] = [['Idle', 6], ['Attack', 10], ['Cast', 9], ['Hurt', 3], ['Death', 10]];
-    sets.forEach(([n, c]) => { for (let i = 1; i <= c; i++) paths.push(`/src/assets/combat/monster2/Individual Sprite/${n}/Bringer-of-Death_${n}_${i}.png`); });
+    sets.forEach(([n, c]) => { for (let i = 1; i <= c; i++) paths.push(`/combat/monster2/Individual Sprite/${n}/Bringer-of-Death_${n}_${i}.png`); });
   } else {
     all.forEach(a => paths.push(getSpritePath(monster.folder, 'sheet', a, 1)));
   }
@@ -220,7 +220,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
     () => HERO_CONFIGS[heroData?.folder ?? 'hero1'] ?? HERO_CONFIGS['hero1'],
     [heroData],
   );
-  const bgUrl = `/src/assets/combat/monster4/islands/island${islandId + 1}.png`;
+  const bgUrl = `/combat/monster4/islands/island${islandId + 1}.png`;
 
   const questionBank = useMemo(() => {
     const overrides = state.customIslandQuestions?.[islandId];

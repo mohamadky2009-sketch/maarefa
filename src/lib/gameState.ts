@@ -46,15 +46,15 @@ export interface Planet {
 }
 
 export const PLANETS: Planet[] = [
-  { id: 0, name: 'نبتون',    image: '/src/assets/planets/planet-neptune.png',  islandCount: 4, monster: 4, color: '#1e40af' },
-  { id: 1, name: 'أورانوس', image: '/src/assets/planets/planet-uranus.png',   islandCount: 4, monster: 4, color: '#0d9488' },
-  { id: 2, name: 'زحل',     image: '/src/assets/planets/planet-saturn.png',   islandCount: 4, monster: 3, color: '#ca8a04' },
-  { id: 3, name: 'المشتري', image: '/src/assets/planets/planet-jupiter.png',  islandCount: 3, monster: 3, color: '#ea580c' },
-  { id: 4, name: 'المريخ',  image: '/src/assets/planets/planet-mars.png',     islandCount: 3, monster: 3, color: '#dc2626' },
-  { id: 5, name: 'الأرض',   image: '/src/assets/planets/planet-earth.png',    islandCount: 3, monster: 2, color: '#16a34a' },
-  { id: 6, name: 'الزهرة',  image: '/src/assets/planets/planet-venus.png',    islandCount: 3, monster: 2, color: '#d97706' },
-  { id: 7, name: 'عطارد',   image: '/src/assets/planets/planet-mercury.png',  islandCount: 3, monster: 1, color: '#6b7280' },
-  { id: 8, name: 'الشمس',   image: '/src/assets/planets/planet-sun.png',      islandCount: 4, monster: 1, color: '#eab308' },
+  { id: 0, name: 'نبتون',    image: '/planets/planet-neptune.png',  islandCount: 4, monster: 4, color: '#1e40af' },
+  { id: 1, name: 'أورانوس', image: '/planets/planet-uranus.png',   islandCount: 4, monster: 4, color: '#0d9488' },
+  { id: 2, name: 'زحل',     image: '/planets/planet-saturn.png',   islandCount: 4, monster: 3, color: '#ca8a04' },
+  { id: 3, name: 'المشتري', image: '/planets/planet-jupiter.png',  islandCount: 3, monster: 3, color: '#ea580c' },
+  { id: 4, name: 'المريخ',  image: '/planets/planet-mars.png',     islandCount: 3, monster: 3, color: '#dc2626' },
+  { id: 5, name: 'الأرض',   image: '/planets/planet-earth.png',    islandCount: 3, monster: 2, color: '#16a34a' },
+  { id: 6, name: 'الزهرة',  image: '/planets/planet-venus.png',    islandCount: 3, monster: 2, color: '#d97706' },
+  { id: 7, name: 'عطارد',   image: '/planets/planet-mercury.png',  islandCount: 3, monster: 1, color: '#6b7280' },
+  { id: 8, name: 'الشمس',   image: '/planets/planet-sun.png',      islandCount: 4, monster: 1, color: '#eab308' },
 ];
 
 // ===================================================================
@@ -349,8 +349,8 @@ const RAW_ISLANDS: Array<Omit<Island, 'image' | 'background'>> = [
 
 export const ISLANDS: Island[] = RAW_ISLANDS.map((isl) => ({
   ...isl,
-  image: `/src/assets/combat/monster4/islands/island${isl.id + 1}.png`,
-  background: `/src/assets/combat/monster4/islands/island${isl.id + 1}.png`,
+  image: `/combat/monster4/islands/island${isl.id + 1}.png`,
+  background: `/combat/monster4/islands/island${isl.id + 1}.png`,
 }));
 
 // ===================================================================

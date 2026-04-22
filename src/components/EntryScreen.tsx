@@ -4,7 +4,7 @@ import { CHARACTERS, playSound } from '@/lib/gameState';
 import StarField from './StarField';
 import FloatingAstronaut from './FloatingAstronaut';
 import FloatingRocket from './FloatingRocket';
-import parchmentImg from '@/assets/ui/parchment.png';
+const parchmentImg = "/ui/parchment.png";
 
 // ── Monster Guard Sprite ──────────────────────────────────────────────────────
 const MonsterGuard = () => {
@@ -20,7 +20,7 @@ const MonsterGuard = () => {
       <div
         className="w-[130px] h-[130px] sm:w-[200px] sm:h-[200px] md:w-[270px] md:h-[270px] scale-x-[-1]"
         style={{
-          backgroundImage: `url('/src/assets/combat/monster1/Sprites/Idle.png')`,
+          backgroundImage: `url('/combat/monster1/Sprites/Idle.png')`,
           backgroundSize: `${totalFrames * 100}% 100%`,
           backgroundPosition: `${posX}% center`,
           backgroundRepeat: 'no-repeat',
@@ -42,8 +42,8 @@ const HeroCard = ({ character, isSelected, onClick }: any) => {
   }, [totalFrames]);
   const posX = (frame / (totalFrames - 1)) * 100;
   const src = character.folder === 'hero3'
-    ? `/src/assets/combat/${character.folder}/Sprites/Idle.png`
-    : `/src/assets/combat/${character.folder}/Idle.png`;
+    ? `/combat/${character.folder}/Sprites/Idle.png`
+    : `/combat/${character.folder}/Idle.png`;
   return (
     <div
       onClick={onClick}

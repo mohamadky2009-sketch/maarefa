@@ -26,8 +26,8 @@ const CharacterAvatar = ({ charId }: { charId: string }) => {
 
   const positionX = (frame / (totalFrames - 1)) * 100;
   const imagePath = character.folder === 'hero3' 
-    ? `/src/assets/combat/${character.folder}/Sprites/Idle.png` 
-    : `/src/assets/combat/${character.folder}/Idle.png`;
+    ? `/combat/${character.folder}/Sprites/Idle.png` 
+    : `/combat/${character.folder}/Idle.png`;
 
   return (
     <div className="w-14 h-14 md:w-20 md:h-20 overflow-hidden relative border-2 border-blue-500/30 rounded-2xl bg-black/40 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
