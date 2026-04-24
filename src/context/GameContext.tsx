@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { GameState, Player, loadGameState, saveGameState, createPlayer } from '@/lib/gameState';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { GameState, Player, loadGameState, saveGameState, fetchGameState, createPlayer } from '@/lib/gameState';
 
 interface GameCtx {
   state: GameState;
@@ -15,6 +15,14 @@ const Ctx = createContext<GameCtx | null>(null);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<GameState>(loadGameState);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchGameState().then(s => {
+      if (!cancelled) setState(s);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const persist = useCallback((s: GameState) => {
     setState(s);

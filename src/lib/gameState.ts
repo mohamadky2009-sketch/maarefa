@@ -432,26 +432,7 @@ const DEFAULT_BATTLE_SETTINGS: BattleSettings = {
   monsterAttack: { ...DEFAULT_MONSTER_ATTACK },
 };
 
-export function loadGameState(): GameState {
-  const saved = localStorage.getItem('marifa_game');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved) as GameState;
-      const bs = parsed.battleSettings ?? DEFAULT_BATTLE_SETTINGS;
-      return {
-        ...parsed,
-        battleSettings: {
-          ...DEFAULT_BATTLE_SETTINGS,
-          ...bs,
-          heroAttack: { ...DEFAULT_HERO_ATTACK, ...(bs.heroAttack ?? {}) },
-          monsterAttack: { ...DEFAULT_MONSTER_ATTACK, ...(bs.monsterAttack ?? {}) },
-          questionsPerGuard: bs.questionsPerGuard ?? {},
-        },
-        customIslands: parsed.customIslands ?? [],
-        customIslandQuestions: parsed.customIslandQuestions ?? {},
-      };
-    } catch { }
-  }
+function defaultState(): GameState {
   return {
     players: [],
     currentPlayerId: null,
@@ -466,8 +447,69 @@ export function loadGameState(): GameState {
   };
 }
 
+function normalizeState(parsed: any): GameState {
+  const bs = parsed?.battleSettings ?? DEFAULT_BATTLE_SETTINGS;
+  return {
+    players: Array.isArray(parsed?.players) ? parsed.players : [],
+    currentPlayerId: parsed?.currentPlayerId ?? null,
+    questions: Array.isArray(parsed?.questions) ? parsed.questions : [],
+    shopItems: Array.isArray(parsed?.shopItems) && parsed.shopItems.length > 0
+      ? parsed.shopItems
+      : defaultState().shopItems,
+    battleSettings: {
+      ...DEFAULT_BATTLE_SETTINGS,
+      ...bs,
+      heroAttack: { ...DEFAULT_HERO_ATTACK, ...(bs.heroAttack ?? {}) },
+      monsterAttack: { ...DEFAULT_MONSTER_ATTACK, ...(bs.monsterAttack ?? {}) },
+      questionsPerGuard: bs.questionsPerGuard ?? {},
+    },
+    customIslands: parsed?.customIslands ?? [],
+    customIslandQuestions: parsed?.customIslandQuestions ?? {},
+  };
+}
+
+const CACHE_KEY = 'marifa_game';
+
+export function loadGameState(): GameState {
+  try {
+    const saved = localStorage.getItem(CACHE_KEY);
+    if (saved) return normalizeState(JSON.parse(saved));
+  } catch { }
+  return defaultState();
+}
+
+export async function fetchGameState(): Promise<GameState> {
+  try {
+    const res = await fetch('/api/data');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const norm = normalizeState(data);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(norm)); } catch { }
+    return norm;
+  } catch (err) {
+    console.error('fetchGameState failed, falling back to cache:', err);
+    return loadGameState();
+  }
+}
+
+let pushTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function doPush(state: GameState): Promise<void> {
+  try {
+    await fetch('/api/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state),
+    });
+  } catch (err) {
+    console.error('pushGameState failed:', err);
+  }
+}
+
 export function saveGameState(state: GameState) {
-  localStorage.setItem('marifa_game', JSON.stringify(state));
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(state)); } catch { }
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => doPush(state), 400);
 }
 
 // ===================================================================

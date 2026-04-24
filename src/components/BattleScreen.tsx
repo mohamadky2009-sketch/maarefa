@@ -259,6 +259,18 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   const currentQuestion = questionBank[currentQIdx] ?? island?.question;
 
+  // Shuffle answer positions per question (so the correct answer is in different spots)
+  const [shuffledOpts, setShuffledOpts] = useState<{ text: string; originalIdx: number }[]>([]);
+  useEffect(() => {
+    if (!currentQuestion?.options) { setShuffledOpts([]); return; }
+    const arr = currentQuestion.options.map((text, originalIdx) => ({ text, originalIdx }));
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    setShuffledOpts(arr);
+  }, [currentQuestion]);
+
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!heroData || !island) return;
@@ -338,7 +350,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-black flex flex-col gap-6 items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 gap-5">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6 px-6">
         <div className="text-5xl animate-pulse">⚔️</div>
         <p className="text-white/70 text-base font-bold tracking-widest">جاري تحميل المعركة…</p>
         <div className="flex gap-2">
@@ -353,11 +365,12 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
   const isLocked = heroAction !== 'idle' || monsterAction !== 'idle' || gameResult !== 'none';
 
-  const handleAnswer = (index: number) => {
+  const handleAnswer = (shuffledIdx: number) => {
     if (isLocked) return;
     const q     = (currentQuestion ?? island.question) as any;
     const right = q.correctIndex ?? q.correctAnswerIndex ?? q.correctOption ?? 0;
-    if (index === right) {
+    const originalIdx = shuffledOpts[shuffledIdx]?.originalIdx ?? shuffledIdx;
+    if (originalIdx === right) {
       setCorrectAnswers(p => p + 1);
       const nc = combo + 1;
       setCombo(nc);
@@ -510,9 +523,9 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
       )}
 
       {/* ══════ HP BARS ══════════════════════════════════════════════════════ */}
-      <div className="relative z-20 w-full max-w-6xl mx-auto flex items-center gap-20 gap-1 px-2 pt-1.5 pb-0.5 sm:gap-3 sm:px-4 sm:pt-3">
+      <div className="relative z-20 w-full max-w-6xl mx-auto flex items-center gap-2 px-2 pt-1.5 pb-0.5 sm:gap-3 sm:px-4 sm:pt-3">
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center gap-20 mb-0.5">
+          <div className="flex justify-between items-center mb-0.5">
             <span className="font-black truncate" style={{ fontSize: 'clamp(9px,2.5vw,13px)', color: '#67e8f9', textShadow: '0 0 10px #06b6d4' }}>
               {currentPlayer.name}
             </span>
@@ -547,7 +560,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
         <span className="shrink-0 select-none" style={{ fontSize: 'clamp(12px,3.5vw,20px)', textShadow: '0 0 16px rgba(255,255,255,.7)' }}>⚔️</span>
 
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center gap-20 mb-0.5">
+          <div className="flex justify-between items-center mb-0.5">
             <span className="font-mono tabular-nums shrink-0 mr-1" style={{ fontSize: 'clamp(9px,2.5vw,12px)', color: monBarColor }}>
               {monsterHP}<span className="text-white/30">/100</span>
             </span>
@@ -714,7 +727,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             animate={{ scale: 1,   opacity: 1 }}
             exit={{    scale: 0.8, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-            className="fixed inset-0 flex items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 z-50 pointer-events-none"
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
           >
             <div style={{
               fontSize: 'clamp(3.5rem, 16vw, 7rem)',
@@ -769,9 +782,12 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-              {(currentQuestion ?? island.question).options.map((opt, i) => (
+              {(shuffledOpts.length > 0
+                ? shuffledOpts
+                : (currentQuestion ?? island.question).options.map((text, originalIdx) => ({ text, originalIdx }))
+              ).map((opt, i) => (
                 <button
-                  key={i}
+                  key={`${currentQIdx}-${i}-${opt.originalIdx}`}
                   onClick={() => handleAnswer(i)}
                   disabled={isLocked}
                   dir="rtl"
@@ -793,9 +809,9 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
                     <div className="absolute inset-y-0 w-10 bg-white/12 blur-sm skew-x-12" style={{ animation: 'bsScan 1.4s linear infinite' }} />
                   </div>
 
-                  <div className="relative flex items-center gap-20 gap-2">
+                  <div className="relative flex items-center gap-2">
                     <span
-                      className="shrink-0 rounded-lg flex items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 font-black transition-all duration-200"
+                      className="shrink-0 rounded-lg flex items-center justify-center font-black transition-all duration-200"
                       style={{
                         width: 'clamp(20px,4.5vw,28px)',
                         height: 'clamp(20px,4.5vw,28px)',
@@ -807,7 +823,7 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
                     >
                       {i + 1}
                     </span>
-                    <span className="text-white/85 group-hover:text-cyan-50 transition-colors duration-200 leading-snug">{opt}</span>
+                    <span className="text-white/85 group-hover:text-cyan-50 transition-colors duration-200 leading-snug flex-1">{opt.text}</span>
                   </div>
                 </button>
               ))}
@@ -843,13 +859,17 @@ const BattleScreen = ({ islandId, onBack, onVictory, onDefeat }: Props) => {
 
       {/* ── CSS: sprite scale breakpoints + keyframes ── */}
       <style>{`
-        :root { --sprite-scale: 0.42; }
-        @media (min-width:  380px) { :root { --sprite-scale: 0.48; } }
-        @media (min-width:  480px) { :root { --sprite-scale: 0.56; } }
+        :root { --sprite-scale: 0.34; }
+        @media (min-width:  360px) { :root { --sprite-scale: 0.40; } }
+        @media (min-width:  420px) { :root { --sprite-scale: 0.48; } }
+        @media (min-width:  520px) { :root { --sprite-scale: 0.58; } }
         @media (min-width:  640px) { :root { --sprite-scale: 0.72; } }
         @media (min-width:  768px) { :root { --sprite-scale: 0.90; } }
         @media (min-width: 1024px) { :root { --sprite-scale: 1.15; } }
         @media (min-width: 1280px) { :root { --sprite-scale: 1.35; } }
+        @media (max-height: 600px) and (orientation: landscape) {
+          :root { --sprite-scale: 0.38; }
+        }
 
         @keyframes bsBgZoom {
           0%   { transform:scale(1.12) translate(0%,0%); }
@@ -917,7 +937,7 @@ const EpicModal = ({ type, monsterName, correct, wrong, damageDealt, damageRecei
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-end sm:items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 overflow-hidden"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden"
       style={{ background: `radial-gradient(ellipse at center,rgba(${rgb},.22) 0%,rgba(0,0,0,.97) 65%)` }}
     >
       <div className="absolute inset-0" style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }} />
