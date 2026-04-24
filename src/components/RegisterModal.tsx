@@ -37,7 +37,7 @@ const RegisterModal = ({ onClose }: { onClose: () => void }) => {
                 <button
                   key={c.id}
                   onClick={() => { playSound('click'); setCharId(c.id); }}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col gap-6 items-center gap-2 ${
                     charId === c.id
                       ? 'border-primary bg-primary/10 scale-105 animate-float'
                       : 'border-border hover:border-muted-foreground'

@@ -53,7 +53,7 @@ const HeroCard = ({ character, isSelected, onClick }: any) => {
           : 'border-white/10 bg-black/40 hover:bg-white/5 hover:scale-105'
       }`}
     >
-      <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center overflow-hidden mx-auto">
+      <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 overflow-hidden mx-auto">
         <div
           className={`w-full h-full ${character.folder === 'hero3' ? 'scale-[2.4]' : 'scale-[1.8]'}`}
           style={{
@@ -107,18 +107,18 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#050505] overflow-hidden text-white">
+    <div className="relative min-h-screen w-full flex items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 bg-[#050505] overflow-hidden text-white">
       <StarField />
       <FloatingRocket />
       {phase === 'intro' && !loggedIn && <FloatingAstronaut />}
 
       {/* ── Intro / Scroll Phase ── */}
       {phase === 'intro' && (
-        <div className="relative flex items-center z-30 w-full max-w-3xl justify-center px-3">
+        <div className="relative flex items-center gap-20 z-30 w-full max-w-3xl justify-between w-full max-w-4xl mx-auto px-10 px-3">
           <MonsterGuard />
 
           {/* Parchment scroll */}
-          <div className="relative z-30 w-full flex justify-center" style={{ animation: 'entryFloat 4s ease-in-out infinite' }}>
+          <div className="relative z-30 w-full flex justify-between w-full max-w-4xl mx-auto px-10" style={{ animation: 'entryFloat 4s ease-in-out infinite' }}>
             <div
               className="relative"
               style={{
@@ -136,7 +136,7 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
                 />
 
                 {/* Text & Buttons layer */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-6 py-10 text-amber-950 text-center gap-0">
+                <div className="absolute inset-0 flex flex-col gap-6 items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 px-6 py-10 text-amber-950 text-center gap-0">
                   {/* Title */}
                   <h1
                     className="font-black leading-none mb-1 drop-shadow-md"
@@ -152,14 +152,14 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
                   </p>
 
                   {/* Ornamental divider */}
-                  <div className="flex items-center gap-2 mb-5 w-full px-2">
+                  <div className="flex items-center gap-20 gap-2 mb-5 w-full px-2">
                     <div className="flex-1 h-px bg-amber-900/30" />
                     <span className="text-amber-900/40 text-[8px]">✦</span>
                     <div className="flex-1 h-px bg-amber-900/30" />
                   </div>
 
                   {/* ── Buttons — leather scroll ends, 55% size ── */}
-                  <div className="flex flex-col items-center gap-2.5 w-full">
+                  <div className="flex flex-col gap-6 items-center gap-20 gap-2.5 w-full">
 
                     {/* Primary */}
                     <button
@@ -228,7 +228,7 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
               style={{ textShadow: '0 0 15px rgba(59,130,246,0.8)' }}>
               تجهيز المهمة
             </h2>
-            <div className="flex justify-center gap-2">
+            <div className="flex justify-between w-full max-w-4xl mx-auto px-10 gap-2">
               {(['hero', 'name', 'email'] as const).map(s => (
                 <div key={s} className={`h-1.5 w-14 sm:w-18 rounded-full transition-all duration-300 ${
                   step === s ? 'bg-blue-500 shadow-[0_0_12px_blue]' : 'bg-white/20'
@@ -237,7 +237,7 @@ const EntryScreen = ({ onAdmin, loggedIn = false, onPlay }: EntryScreenProps) =>
             </div>
           </div>
 
-          <div className="bg-black/70 backdrop-blur-xl border-2 border-blue-500/30 rounded-3xl p-5 sm:p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] min-h-[260px] flex flex-col justify-center">
+          <div className="bg-black/70 backdrop-blur-xl border-2 border-blue-500/30 rounded-3xl p-5 sm:p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] min-h-[260px] flex flex-col gap-6 justify-between w-full max-w-4xl mx-auto px-10">
 
             {step === 'hero' && (
               <div className="space-y-5 animate-in fade-in duration-300">

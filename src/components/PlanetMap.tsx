@@ -84,8 +84,8 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
     <div className="min-h-screen relative p-4 overflow-x-hidden bg-[#050812] z-40">
       
       {/* الشريط العلوي المحدث مع صورة الشخصية */}
-      <div className="relative z-50 flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 backdrop-blur-md border border-slate-700 rounded-3xl p-3 md:p-4 mb-6 shadow-2xl">
-        <div className="flex items-center gap-4">
+      <div className="relative z-50 flex flex-wrap items-center gap-20 justify-between gap-3 bg-slate-900/80 backdrop-blur-md border border-slate-700 rounded-3xl p-3 md:p-4 mb-6 shadow-2xl">
+        <div className="flex items-center gap-20 gap-4">
           {/* تم استبدال الإيموجي بالشخصية المتحركة */}
           <CharacterAvatar charId={currentPlayer.characterId} />
           <div>
@@ -94,7 +94,7 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
           </div>
         </div>
         
-        <div className="flex items-center gap-2 flex-1 max-w-[200px]">
+        <div className="flex items-center gap-20 gap-2 flex-1 max-w-[200px]">
           <span className="text-xs font-bold text-blue-200">XP</span>
           <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
             <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${xpPercent}%` }} />
@@ -102,8 +102,8 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
           <span className="text-xs font-bold text-purple-300">{currentPlayer.xp}</span>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4">
-          <span className="text-sm font-black text-yellow-400 flex items-center gap-1 bg-black/30 px-3 py-1.5 rounded-lg border border-yellow-500/30">
+        <div className="flex items-center gap-20 gap-2 md:gap-4">
+          <span className="text-sm font-black text-yellow-400 flex items-center gap-20 gap-1 bg-black/30 px-3 py-1.5 rounded-lg border border-yellow-500/30">
             {currentPlayer.gold} 💰
           </span>
           <button onClick={() => { playSound('click'); setShowLeaderboard(true); }} className="text-base px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-300 transition-all hover:scale-105">🏆</button>
@@ -113,7 +113,7 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
       </div>
 
       {/* مسار الكواكب */}
-      <div className="relative z-10 flex flex-col items-center gap-28 md:gap-40 max-w-4xl mx-auto mt-20 pb-10">
+      <div className="relative z-10 flex flex-col gap-6 items-center gap-20 gap-28 md:gap-40 max-w-4xl mx-auto mt-20 pb-10">
         
         {PLANETS.map((planet, index) => {
           const unlocked = currentPlayer.unlockedPlanets.includes(planet.id);
@@ -125,7 +125,7 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
           return (
             <div 
               key={planet.id} 
-              className={`flex flex-col items-center w-full transition-all duration-700 ${
+              className={`flex flex-col gap-6 items-center gap-20 w-full transition-all duration-700 ${
                 isLeft ? 'pr-[30%] md:pr-[40%]' : 'pl-[30%] md:pl-[40%]'
               }`}
             >
@@ -134,7 +134,7 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                   if (unlocked && !isZooming) handlePlanetEnter(planet.id);
                   else if (!unlocked) playSound('wrong');
                 }}
-                className={`relative flex flex-col items-center group transition-all ${
+                className={`relative flex flex-col gap-6 items-center gap-20 group transition-all ${
                   isZooming 
                     ? 'scale-[15] opacity-0 z-[100] pointer-events-none' 
                     : 'duration-500'
@@ -146,7 +146,7 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                   ...(!isZooming ? { animation: `planet-orbit 6s ease-in-out ${delay}s infinite` } : {}),
                 }}
               >
-                <div className="relative flex justify-center items-center">
+                <div className="relative flex justify-between w-full max-w-4xl mx-auto px-10 items-center gap-20">
                   <div className={`absolute inset-0 rounded-full blur-[40px] transition-all duration-500 ${
                     unlocked ? 'bg-blue-500/30' : 'bg-transparent'
                   }`}></div>
@@ -171,7 +171,7 @@ const PlanetMap = ({ onSelectPlanet }: Props) => {
                   )}
                 </div>
 
-                <div className={`mt-4 flex flex-col items-center transition-opacity ${isZooming ? 'opacity-0' : 'opacity-100'}`}>
+                <div className={`mt-4 flex flex-col gap-6 items-center gap-20 transition-opacity ${isZooming ? 'opacity-0' : 'opacity-100'}`}>
                   <span className={`font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-1 ${
                     isSun ? 'text-4xl md:text-5xl text-yellow-400' : 'text-2xl md:text-3xl text-white'
                   }`}>

@@ -50,7 +50,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
 
       <div className="relative z-10 pb-16">
         {/* ── Header ── */}
-        <div className="flex items-center gap-4 p-4 md:p-6">
+        <div className="flex items-center gap-20 gap-4 p-4 md:p-6">
           <button
             onClick={() => { playSound('click'); onBack(); }}
             className="px-4 py-2.5 rounded-xl bg-black/60 hover:bg-black/80 text-white font-bold transition-all border border-white/10 shadow-lg backdrop-blur-sm text-sm"
@@ -70,7 +70,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
             لا توجد جزر في هذا الكوكب بعد
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-0 px-4 mt-4">
+          <div className="flex flex-col gap-6 items-center gap-20 gap-0 px-4 mt-4">
             {allIslands.map((island, i) => {
               const unlocked  = unlockedIslandIds.includes(island.id);
               const completed = unlocked && i < unlockedIslandIds.length - 1;
@@ -85,7 +85,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
               return (
                 <div
                   key={island.id}
-                  className="relative flex flex-col items-center"
+                  className="relative flex flex-col gap-6 items-center gap-20"
                   style={{ transform: offset, marginBottom: '-16px' }}
                 >
                   {/* Connecting path dot (not on first) */}
@@ -139,7 +139,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
 
                       {/* Lock icon */}
                       {!unlocked && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                        <div className="absolute inset-0 flex items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 bg-black/50">
                           <span className="text-4xl">🔒</span>
                         </div>
                       )}
@@ -151,7 +151,7 @@ const IslandMap = ({ planetId, onSelectIsland, onBack }: Props) => {
 
                       {/* Number badge */}
                       <div
-                        className="absolute bottom-2 left-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-lg border"
+                        className="absolute bottom-2 left-2 w-7 h-7 rounded-full flex items-center gap-20 justify-between w-full max-w-4xl mx-auto px-10 text-xs font-black shadow-lg border"
                         style={{
                           background: unlocked ? pColor : '#444',
                           borderColor: '#ffffff44',

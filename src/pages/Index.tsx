@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useState, useEffect } from 'react';
 import { GameProvider, useGame } from '@/context/GameContext';
 import StarField from '@/components/StarField';
 import EntryScreen from '@/components/EntryScreen';
@@ -23,7 +22,6 @@ const GameApp = () => {
   const [screen, setScreen] = useState<Screen>({ type: 'entry' });
   const [showAdminLogin, setShowAdminLogin] = useState(false);
 
-  // Auto-advance past entry for already-logged-in players
   useEffect(() => {
     if (currentPlayer && screen.type === 'entry') {
       setScreen({ type: 'planets' });
@@ -62,54 +60,27 @@ const GameApp = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-black text-white">
+    <div className="min-h-screen px-4 py-6 md:px-8 relative overflow-hidden bg-black text-white">
       {(screen.type === 'entry' || screen.type === 'scroll') && <StarField />}
-
-      {/* First-time entry (registration) */}
-      {screen.type === 'entry' && (
-        <EntryScreen onAdmin={() => setShowAdminLogin(true)} />
-      )}
-
-      {/* Returning player — scroll home screen */}
+      {screen.type === 'entry' && <EntryScreen onAdmin={() => setShowAdminLogin(true)} />}
       {screen.type === 'scroll' && (
-        <EntryScreen
-          loggedIn
-          onAdmin={() => setShowAdminLogin(true)}
-          onPlay={() => setScreen({ type: 'planets' })}
-        />
+        <EntryScreen loggedIn onAdmin={() => setShowAdminLogin(true)} onPlay={() => setScreen({ type: 'planets' })} />
       )}
-
-      {screen.type === 'admin' && (
-        <AdminPanel onBack={() => setScreen({ type: 'entry' })} />
-      )}
-
-      {/* Admin password gate — shown over any screen */}
+      {screen.type === 'admin' && <AdminPanel onBack={() => setScreen({ type: 'entry' })} />}
       {showAdminLogin && (
-        <AdminLoginModal
-          onClose={() => setShowAdminLogin(false)}
-          onSuccess={() => { setShowAdminLogin(false); setScreen({ type: 'admin' }); }}
-        />
+        <AdminLoginModal onClose={() => setShowAdminLogin(false)} onSuccess={() => { setShowAdminLogin(false); setScreen({ type: 'admin' }); }} />
       )}
-
-      {screen.type === 'planets' && (
-        <PlanetMap onSelectPlanet={id => setScreen({ type: 'islands', planetId: id })} />
-      )}
-
+      {screen.type === 'planets' && <PlanetMap onSelectPlanet={id => setScreen({ type: 'islands', planetId: id })} />}
       {screen.type === 'islands' && (
-        <IslandMap
-          planetId={screen.planetId}
-          onSelectIsland={id => setScreen({ type: 'battle', planetId: screen.planetId, islandId: id })}
-          onBack={goHome}          /* ← Island Map back → Home Scroll */
-        />
+        <IslandMap planetId={screen.planetId} onSelectIsland={id => setScreen({ type: 'battle', planetId: screen.planetId, islandId: id })} onBack={goHome} />
       )}
-
       {screen.type === 'battle' && (
         <BattleScreen
           planetId={screen.planetId}
           islandId={screen.islandId}
-          onBack={goHome}          /* ← Battle exit → Home Scroll */
+          onBack={goHome}
           onVictory={() => handleVictory(screen.planetId, screen.islandId)}
-          onDefeat={goHome}        /* ← Defeat → Home Scroll */
+          onDefeat={goHome}
         />
       )}
     </div>
